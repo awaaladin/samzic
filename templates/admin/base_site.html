@@ -1,0 +1,146 @@
+{% extends "admin/base.html" %}
+{% comment %}
+Skins the whole admin in the site's ink/ember/bone palette by overriding
+Django's CSS custom properties, which every admin page already consumes. No
+markup is replaced, so add/change/delete forms, inlines, bulk actions, filters
+and history all keep working exactly as Django ships them.
+{% endcomment %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Samzic Foods Empire{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #141414;
+    --secondary: #141414;
+    --accent: #C21807;
+    --primary-fg: #F4F2EF;
+
+    --header-color: #F4F2EF;
+    --header-branding-color: #F4F2EF;
+    --header-bg: #141414;
+    --header-link-color: #F4F2EF;
+
+    --breadcrumbs-fg: #8A8A8A;
+    --breadcrumbs-link-fg: #141414;
+    --breadcrumbs-bg: #F4F2EF;
+
+    --link-fg: #C21807;
+    --link-hover-color: #9C1205;
+    --link-selected-fg: #9C1205;
+
+    --body-fg: #141414;
+    --body-bg: #F7F6F4;
+    --body-quiet-color: #6B6B6B;
+    --body-loud-color: #141414;
+
+    --button-bg: #141414;
+    --button-fg: #F4F2EF;
+    --button-hover-bg: #C21807;
+    --default-button-bg: #C21807;
+    --default-button-hover-bg: #9C1205;
+    --delete-button-bg: #B3261E;
+    --delete-button-hover-bg: #8C1D17;
+
+    --object-tools-bg: #C21807;
+    --object-tools-hover-bg: #9C1205;
+
+    --selected-bg: #F4F2EF;
+    --selected-row: #FDF3F1;
+
+    --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  body { font-family: var(--font-family-primary); }
+
+  #branding h1, #branding h1 a:link, #branding h1 a:visited {
+    font-family: 'Bricolage Grotesque', var(--font-family-primary);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3, .dashboard-figure {
+    font-family: 'Bricolage Grotesque', var(--font-family-primary);
+  }
+
+  /* Rounder edges than stock Django, to match the storefront's panels. */
+  .module, .dashboard-card, #content-related .module,
+  .object-tools a, .button, input[type=submit], a.button {
+    border-radius: 10px;
+  }
+  .object-tools a, .button, input[type=submit], input[type=button], .submit-row a {
+    border-radius: 999px;
+  }
+
+  #header { border-bottom: 3px solid var(--accent); }
+
+  /* --- Dashboard ------------------------------------------------------- */
+  .dashboard-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    margin-bottom: 22px;
+  }
+  .dashboard-card {
+    background: #fff;
+    border: 1px solid rgba(20, 20, 20, .1);
+    padding: 16px 18px;
+  }
+  .dashboard-card.accent { border-color: rgba(194, 24, 7, .35); background: #FDF3F1; }
+  .dashboard-label {
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #8A8A8A;
+  }
+  .dashboard-figure {
+    display: block;
+    margin-top: 6px;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .dashboard-card.accent .dashboard-figure { color: #C21807; }
+  .dashboard-note { font-size: 11px; color: #8A8A8A; margin-top: 3px; }
+
+  .dashboard-section-title {
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: #8A8A8A;
+    margin: 0 0 10px;
+  }
+  table.dashboard-recent { width: 100%; background: #fff; border-radius: 10px; }
+  table.dashboard-recent td, table.dashboard-recent th { padding: 8px 12px; font-size: 12px; }
+
+  .status-pill {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .status-pending   { background: #FEF3C7; color: #92400E; }
+  .status-confirmed { background: #DBEAFE; color: #1E40AF; }
+  .status-delivered { background: #D1FAE5; color: #065F46; }
+  .status-unpaid    { background: #FDF3F1; color: #9C1205; }
+</style>
+{% endblock %}
+
+{% block branding %}
+<div id="site-name">
+  <a href="{% url 'admin:index' %}">Samzic Foods Empire</a>
+</div>
+{% if user.is_authenticated %}
+  <a href="/" style="color:#F4F2EF;opacity:.65;font-size:12px;margin-left:14px;">View site &rarr;</a>
+{% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

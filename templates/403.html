@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% comment %}
+Extends base.html like 404.html does: a 403 means the request was understood
+and refused, so the session, nav and context processors are all still sound.
+{% endcomment %}
+
+{% block title %}Not allowed — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center px-5 text-center">
+  <p class="display text-[110px] font-extrabold leading-none text-ink/10">403</p>
+  <h1 class="display mt-4 text-3xl font-extrabold text-ink md:text-4xl">That door stays shut</h1>
+  <p class="mt-4 max-w-md text-sm leading-relaxed text-ink/55">
+    {% if user.is_authenticated %}
+      Your account doesn&rsquo;t have access to this page. If you think it should, let us know.
+    {% else %}
+      This page is for signed-in customers. Sign in and try again.
+    {% endif %}
+  </p>
+  <div class="mt-9 flex flex-wrap justify-center gap-3">
+    {% if not user.is_authenticated %}
+      <a href="{% url 'accounts:login' %}"
+         class="rounded-full bg-ember px-7 py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">
+        Sign in
+      </a>
+    {% endif %}
+    <a href="{% url 'menu:menu' %}"
+       class="rounded-full border border-ink/20 px-7 py-3.5 text-sm transition hover:border-ember hover:text-ember">
+      Browse the menu
+    </a>
+  </div>
+  <p class="mt-8 text-sm text-ink/50">
+    Or call us on <a href="tel:{{ SITE_PHONE }}" class="font-semibold text-ember underline-grow">{{ SITE_PHONE }}</a>
+  </p>
+</div>
+{% endblock %}

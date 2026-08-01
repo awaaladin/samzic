@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Contact &mdash; {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}Reach {{ SITE_NAME }} by phone, email or Instagram, or send a message directly.{% endblock %}
+{% block nav_contact %}text-ember font-semibold{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-7xl px-5 pt-12 lg:px-8">
+  <p class="text-[11px] tracking-[0.2em] text-ember">CONTACT</p>
+  <h1 class="display mt-3 text-4xl font-extrabold md:text-6xl">Let&rsquo;s talk food</h1>
+
+  <div class="mt-12 grid gap-10 lg:grid-cols-3">
+    <div class="space-y-5 lg:col-span-1">
+      <a href="tel:{{ SITE_PHONE }}" class="lift block rounded-2xl border border-ink/10 bg-white p-6">
+        <p class="text-[11px] tracking-[0.2em] text-ink/40">PHONE</p>
+        <p class="display mt-2 text-lg font-bold">{{ SITE_PHONE }}</p>
+      </a>
+      <a href="mailto:samzicofficial1@gmail.com" class="lift block rounded-2xl border border-ink/10 bg-white p-6">
+        <p class="text-[11px] tracking-[0.2em] text-ink/40">EMAIL</p>
+        <p class="display mt-2 break-all text-lg font-bold">samzicofficial1@gmail.com</p>
+      </a>
+      <a href="https://www.instagram.com/samzicfoods_empire" target="_blank" rel="noopener"
+         class="lift block rounded-2xl border border-ink/10 bg-white p-6">
+        <p class="text-[11px] tracking-[0.2em] text-ink/40">INSTAGRAM</p>
+        <p class="display mt-2 text-lg font-bold">@samzicfoods_empire</p>
+      </a>
+      <div class="rounded-2xl bg-ink p-6 text-bone">
+        <p class="text-[11px] tracking-[0.2em] text-bone/40">KITCHEN HOURS</p>
+        <p class="display mt-2 text-lg font-bold">Mon &ndash; Sun, 9am &ndash; 9pm</p>
+        <p class="mt-1 text-xs text-bone/50">Lagos, Nigeria</p>
+      </div>
+    </div>
+
+    {# Saves a ContactMessage, then redirects — the admin is the shared inbox. #}
+    <form method="post" class="grid h-fit gap-4 rounded-[28px] border border-ink/10 bg-white p-8 sm:grid-cols-2 lg:col-span-2 md:p-10" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="rounded-xl border border-ember/30 bg-ember/10 px-5 py-4 text-sm text-ember-dark sm:col-span-2">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      {% include "partials/_field.html" with field=form.full_name %}
+      {% include "partials/_field.html" with field=form.phone_number %}
+      {% include "partials/_field.html" with field=form.email span=True %}
+      {% include "partials/_field.html" with field=form.subject span=True %}
+      {% include "partials/_field.html" with field=form.message span=True %}
+
+      <button type="submit" class="rounded-full bg-ember py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark sm:col-span-2">
+        Send message
+      </button>
+      <p class="text-[11px] leading-relaxed text-ink/45 sm:col-span-2">
+        Chasing an existing order? Quote your reference (SFE-&hellip;) and we&rsquo;ll find it faster.
+      </p>
+    </form>
+  </div>
+</section>
+{% endblock %}

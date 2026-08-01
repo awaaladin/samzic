@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Menu &mdash; {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}Everything the kitchen is cooking today. Rice, swallow, soups, grills and small chops, prepared to order and delivered hot.{% endblock %}
+{% block nav_menu %}text-ink{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-7xl px-5 pt-10 lg:px-8">
+  <p class="text-[11px] tracking-[0.2em] text-ember">THE MENU</p>
+  <div id="menu-heading" class="mt-2 flex flex-wrap items-end justify-between gap-6 border-b border-ink/10 pb-8">
+    <h1 class="display max-w-xl text-4xl font-extrabold leading-[1.02] md:text-6xl">
+      {% if active_category %}{{ active_category.name }}{% else %}Everything the kitchen is cooking today{% endif %}
+    </h1>
+    <p class="max-w-xs text-sm text-ink/55">
+      {% if active_category and active_category.description %}{{ active_category.description }}
+      {% else %}Prepared to order. Cut-off for same-day delivery is 7:00pm.{% endif %}
+    </p>
+  </div>
+</section>
+
+<section id="menu-results" class="mx-auto max-w-7xl px-5 pt-8 transition-opacity duration-150 lg:px-8">
+  <div class="sticky top-[72px] z-20 -mx-5 bg-bone/95 px-5 py-4 backdrop-blur lg:-mx-8 lg:px-8">
+    <div id="menu-filters" class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+      <div class="flex flex-wrap gap-2">
+        <a href="{% url 'menu:menu' %}{% if query %}?q={{ query|urlencode }}{% endif %}"
+           class="rounded-full px-4 py-2 text-sm transition {% if not active_category %}bg-ink text-bone{% else %}border border-ink/15 bg-white text-ink/70 hover:border-ember hover:text-ember{% endif %}">
+          All
+        </a>
+        {% for category in categories %}
+          <a href="?category={{ category.slug }}{% if query %}&amp;q={{ query|urlencode }}{% endif %}{% if sort %}&amp;sort={{ sort }}{% endif %}"
+             class="rounded-full px-4 py-2 text-sm transition {% if active_category.pk == category.pk %}bg-ember text-bone{% else %}border border-ink/15 bg-white text-ink/70 hover:border-ember hover:text-ember{% endif %}">
+            {{ category.name }}
+          </a>
+        {% endfor %}
+      </div>
+
+      {% comment %}
+      One GET form carries search + sort so they compose instead of clobbering
+      each other. app.js intercepts it; without JS it posts and reloads.
+      {% endcomment %}
+      <form method="get" action="{% url 'menu:menu' %}" id="menu-search" class="flex gap-3">
+        {% if active_category %}<input type="hidden" name="category" value="{{ active_category.slug }}">{% endif %}
+        <label class="sr-only" for="q">Search dishes</label>
+        <input id="q" type="search" name="q" value="{{ query }}" placeholder="Search dishes"
+               class="w-full rounded-full border border-ink/15 bg-white px-5 py-2.5 text-sm lg:w-56">
+        <label class="sr-only" for="sort">Sort</label>
+        <select id="sort" name="sort"
+                class="rounded-full border border-ink/15 bg-white px-4 py-2.5 text-sm">
+          {% for value, label in sort_choices %}
+            <option value="{{ value }}" {% if sort == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <noscript><button type="submit" class="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-bone transition hover:bg-ember">Go</button></noscript>
+      </form>
+    </div>
+  </div>
+
+  <p id="menu-count" class="mt-4 text-xs text-ink/45">
+    {{ total_count }} dish{{ total_count|pluralize:"es" }}
+    {% if query %}matching &ldquo;{{ query }}&rdquo;{% endif %}
+    {% if active_category %}in {{ active_category.name }}{% endif %}
+  </p>
+
+  <div id="menu-grid" class="mt-5">
+    {% if items %}
+      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {% for item in items %}
+          {% include "menu/_food_card.html" with item=item %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="py-24 text-center">
+        <p class="display text-2xl font-bold">Nothing matches that</p>
+        <p class="mt-2 text-sm text-ink/50">Try a different search, or browse the whole menu.</p>
+        <a href="{% url 'menu:menu' %}" class="mt-6 inline-block rounded-full bg-ember px-7 py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">Show all dishes</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div id="menu-pagination">
+    {% if page_obj.has_other_pages %}
+      <nav class="mt-14 flex items-center justify-center gap-2" aria-label="Pagination">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{% if active_category %}&amp;category={{ active_category.slug }}{% endif %}{% if query %}&amp;q={{ query|urlencode }}{% endif %}{% if sort %}&amp;sort={{ sort }}{% endif %}"
+             class="rounded-full border border-ink/15 bg-white px-4 py-2 text-sm transition hover:border-ember hover:text-ember">Previous</a>
+        {% endif %}
+
+        {% for page_number in page_obj.paginator.page_range %}
+          {% if page_number == page_obj.number %}
+            <span aria-current="page" class="rounded-full bg-ink px-4 py-2 text-sm text-bone">{{ page_number }}</span>
+          {% elif page_number > page_obj.number|add:"-3" and page_number < page_obj.number|add:"3" %}
+            <a href="?page={{ page_number }}{% if active_category %}&amp;category={{ active_category.slug }}{% endif %}{% if query %}&amp;q={{ query|urlencode }}{% endif %}{% if sort %}&amp;sort={{ sort }}{% endif %}"
+               class="rounded-full border border-ink/15 bg-white px-4 py-2 text-sm transition hover:border-ember hover:text-ember">{{ page_number }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if active_category %}&amp;category={{ active_category.slug }}{% endif %}{% if query %}&amp;q={{ query|urlencode }}{% endif %}{% if sort %}&amp;sort={{ sort }}{% endif %}"
+             class="rounded-full border border-ink/15 bg-white px-4 py-2 text-sm transition hover:border-ember hover:text-ember">Next</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

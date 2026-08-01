@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Checkout &mdash; {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-7xl px-5 pt-10 lg:px-8">
+  <div class="flex flex-wrap items-end justify-between gap-4 border-b border-ink/10 pb-6">
+    <h1 class="display text-4xl font-extrabold md:text-5xl">Checkout</h1>
+    <div class="flex items-center gap-3 text-xs text-ink/45">
+      <span class="rounded-full bg-ink px-3 py-1 text-bone">1 Details</span><span>&mdash;</span>
+      <span>2 Payment</span><span>&mdash;</span>
+      <span>3 Done</span>
+    </div>
+  </div>
+
+  <form method="post" class="mt-10 grid gap-10 lg:grid-cols-3" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="rounded-xl border border-ember/30 bg-ember/10 px-5 py-4 text-sm text-ember-dark lg:col-span-3">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div class="space-y-8 lg:col-span-2">
+      <div class="rounded-2xl border border-ink/10 bg-white p-7">
+        <h2 class="display text-lg font-bold">Delivery details</h2>
+        {% if profile and not profile.is_complete %}
+          <p class="mt-3 rounded-xl bg-bone px-4 py-3 text-[11px] leading-relaxed text-ink/55">
+            Tip: save these to your <a href="{% url 'accounts:profile' %}" class="text-ember underline-grow">profile</a> and
+            they will fill themselves in next time.
+          </p>
+        {% endif %}
+
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
+          {% include "partials/_field.html" with field=form.full_name %}
+          {% include "partials/_field.html" with field=form.phone_number %}
+          {% include "partials/_field.html" with field=form.email span=True %}
+          {% include "partials/_field.html" with field=form.delivery_address span=True %}
+          {% include "partials/_field.html" with field=form.note span=True %}
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-ink/10 bg-white p-7">
+        <div class="flex items-center justify-between">
+          <h2 class="display text-lg font-bold">Payment</h2>
+          <span class="flex items-center gap-1.5 text-[11px] text-ink/45">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></svg>
+            Checkout is CSRF protected
+          </span>
+        </div>
+
+        {% comment %}
+        Radios are generated from Order.PaymentMethod, so adding a gateway
+        (Paystack) needs no template change — see orders/payments.py.
+        {% endcomment %}
+        <div class="mt-5 grid gap-3 sm:grid-cols-2">
+          {% for radio in form.payment_method %}
+            <label class="flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition
+                          has-[:checked]:border-ember has-[:checked]:bg-ember/5 border-ink/15 hover:border-ink/30">
+              {{ radio.tag }}
+              <span>{{ radio.choice_label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+
+        {% for error in form.payment_method.errors %}
+          <p class="mt-2 text-[11px] text-ember">{{ error }}</p>
+        {% endfor %}
+
+        <div class="mt-5 rounded-xl border border-ink/10 bg-bone p-5 text-sm">
+          <p class="display font-bold">Pay the rider on delivery</p>
+          <p class="mt-1.5 text-xs leading-relaxed text-ink/55">
+            Cash or transfer when your food arrives. Card payment is coming shortly &mdash; nothing is charged now.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <aside class="h-fit rounded-2xl border border-ink/10 bg-white p-7 lg:sticky lg:top-28">
+      <h2 class="display text-lg font-bold">Order summary</h2>
+
+      <div class="mt-5 space-y-3 text-sm">
+        {% for row in cart %}
+          <div class="flex items-start justify-between gap-3">
+            <span class="text-ink/60">{{ row.item.name }} <span class="text-ink/35">&times; {{ row.quantity }}</span></span>
+            <span class="shrink-0">&#8358;{{ row.total_price|floatformat:0|intcomma }}</span>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="mt-5 space-y-3 border-t border-ink/10 pt-4 text-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-ink/60">Subtotal</span>
+          <span>&#8358;{{ totals.subtotal|floatformat:2|intcomma }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-ink/60">Delivery</span>
+          {% if totals.qualifies_for_free_delivery %}
+            <span class="text-emerald-700">Free</span>
+          {% else %}
+            <span>&#8358;{{ totals.delivery_fee|floatformat:2|intcomma }}</span>
+          {% endif %}
+        </div>
+        <div class="flex items-center justify-between border-t border-ink/10 pt-3">
+          <span class="display font-bold">Total</span>
+          <span class="display text-xl font-bold">&#8358;{{ totals.total|floatformat:2|intcomma }}</span>
+        </div>
+      </div>
+
+      <button type="submit" class="mt-7 w-full rounded-full bg-ember py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">
+        Place order
+      </button>
+      <a href="{% url 'cart:detail' %}" class="mt-3 block text-center text-xs text-ink/45 transition hover:text-ember">Back to cart</a>
+
+      <p class="mt-4 text-[11px] leading-relaxed text-ink/45">
+        Totals are calculated on the server from your cart, not from this page.
+      </p>
+    </aside>
+  </form>
+</section>
+{% endblock %}

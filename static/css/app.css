@@ -1,0 +1,8 @@
+/* Project-specific styles.
+ *
+ * Tailwind is loaded via CDN in development (see base.html).
+ * For production, run: npx tailwindcss -o static/css/tailwind.css --minify
+ * and swap the CDN script for a <link> to tailwind.css.
+ */
+
+/* Add any custom overrides or non-Tailwind styles here. */

@@ -1,0 +1,51 @@
+{% load humanize %}
+{% comment %}
+The cart's money panel. Lives in its own file because cart.views re-renders it
+on in-page quantity changes — one template, so the page and the fetch response
+can never disagree about the total.
+
+Expects: cart, totals, and (for the checkout link) the request user.
+{% endcomment %}
+<h2 class="display text-lg font-bold">Summary</h2>
+
+<div class="mt-5 space-y-3 text-sm">
+  <div class="flex items-center justify-between">
+    <span class="text-ink/60">Subtotal</span>
+    <span>&#8358;{{ totals.subtotal|floatformat:2|intcomma }}</span>
+  </div>
+  <div class="flex items-center justify-between">
+    <span class="text-ink/60">Delivery</span>
+    {% if totals.qualifies_for_free_delivery %}
+      <span class="text-emerald-700">Free</span>
+    {% else %}
+      <span>&#8358;{{ totals.delivery_fee|floatformat:2|intcomma }}</span>
+    {% endif %}
+  </div>
+  <div class="flex items-center justify-between border-t border-ink/10 pt-3">
+    <span class="display font-bold">Total</span>
+    <span class="display text-xl font-bold">&#8358;{{ totals.total|floatformat:2|intcomma }}</span>
+  </div>
+</div>
+
+{% if not totals.qualifies_for_free_delivery %}
+  <p class="mt-4 rounded-xl bg-bone px-4 py-3 text-[11px] leading-relaxed text-ink/55">
+    Add &#8358;{{ totals.amount_to_free_delivery|floatformat:2|intcomma }} more to get free delivery.
+  </p>
+{% endif %}
+
+{% if user.is_authenticated %}
+  <a href="{% url 'orders:checkout' %}" class="mt-7 block rounded-full bg-ember py-3.5 text-center text-sm font-medium text-bone transition hover:bg-ember-dark">
+    Proceed to checkout
+  </a>
+{% else %}
+  <a href="{% url 'accounts:login' %}?next={% url 'orders:checkout' %}" class="mt-7 block rounded-full bg-ember py-3.5 text-center text-sm font-medium text-bone transition hover:bg-ember-dark">
+    Sign in to checkout
+  </a>
+  <p class="mt-3 text-center text-[11px] text-ink/45">
+    New here? <a href="{% url 'accounts:signup' %}" class="text-ember underline-grow">Create an account</a> &mdash; your cart is kept.
+  </p>
+{% endif %}
+
+<p class="mt-4 text-[11px] leading-relaxed text-ink/45">
+  Prices are confirmed at checkout. Free delivery on orders above &#8358;{{ totals.free_delivery_threshold|floatformat:0|intcomma }}.
+</p>

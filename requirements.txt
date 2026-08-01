@@ -1,0 +1,12 @@
+Django==5.1.7
+Pillow==11.1.0
+django-environ==0.12.0
+
+# PostgreSQL driver. Used on Vercel; harmless locally where SQLite is the default.
+psycopg[binary]==3.2.4
+
+# Serve static files in production from Django without a separate CDN.
+whitenoise==6.9.0
+
+# Uncomment when wiring up Paystack (see orders/payments.py)
+# requests==2.32.3

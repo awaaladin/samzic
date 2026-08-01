@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}My profile — {{ SITE_NAME }}{% endblock %}
+{% block nav_account %}text-ember font-semibold{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+
+  <header class="border-b border-ink/10 pb-6">
+    <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-ember">My account</p>
+    <h1 class="display mt-2 text-4xl font-extrabold tracking-tight text-ink">My profile</h1>
+    <p class="mt-2 text-sm text-ink/55">
+      We prefill checkout from here, so keep your address and phone number current.
+    </p>
+  </header>
+
+  {% if not profile.is_complete %}
+    <div class="mt-6 rounded-xl border border-amber-600/25 bg-amber-500/10 px-5 py-4 text-sm text-amber-900">
+      <p class="font-semibold">Your profile is incomplete</p>
+      <p class="mt-1">Add your full name, phone number and delivery address so a rider can reach you.</p>
+    </div>
+  {% endif %}
+
+  <form method="post" novalidate class="mt-8 space-y-8">
+    {% csrf_token %}
+
+    <section class="rounded-2xl border border-ink/10 bg-white p-6 sm:p-8">
+      <h2 class="display text-lg font-bold text-ink">Account</h2>
+      <p class="mt-1 text-sm text-ink/55">How you sign in and where we send order updates.</p>
+
+      <div class="mt-6 space-y-5">
+        <div>
+          <span class="block text-xs text-ink/50">Username</span>
+          <p class="mt-1.5 rounded-xl bg-bone px-4 py-3 text-sm text-ink/60">{{ user.username }}</p>
+          <p class="mt-1.5 text-[11px] text-ink/45">Usernames cannot be changed.</p>
+        </div>
+
+        {% if user_form.non_field_errors %}
+          <div role="alert" class="rounded-xl border border-ember/30 bg-ember/10 px-4 py-3 text-sm text-ember-dark">
+            {% for error in user_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+        {% endif %}
+
+        {% for field in user_form %}
+          {% include "partials/_field.html" with field=field %}
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-ink/10 bg-white p-6 sm:p-8">
+      <h2 class="display text-lg font-bold text-ink">Delivery details</h2>
+      <p class="mt-1 text-sm text-ink/55">Used to prefill every checkout &mdash; you can still edit them per order.</p>
+
+      <div class="mt-6 space-y-5">
+        {% if profile_form.non_field_errors %}
+          <div role="alert" class="rounded-xl border border-ember/30 bg-ember/10 px-4 py-3 text-sm text-ember-dark">
+            {% for error in profile_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+        {% endif %}
+
+        {% for field in profile_form %}
+          {% include "partials/_field.html" with field=field %}
+        {% endfor %}
+      </div>
+    </section>
+
+    <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+      <a href="{% url 'menu:menu' %}"
+         class="rounded-full border border-ink/20 px-7 py-3.5 text-center text-sm transition hover:border-ember hover:text-ember">
+        Back to menu
+      </a>
+      <button type="submit"
+              class="rounded-full bg-ember px-7 py-3.5 text-sm font-semibold text-bone transition hover:bg-ember-dark">
+        Save changes
+      </button>
+    </div>
+  </form>
+
+  <section class="mt-10 rounded-2xl border border-ink/10 bg-white p-6 sm:p-8">
+    <h2 class="display text-lg font-bold text-ink">Your orders</h2>
+    <p class="mt-1 text-sm text-ink/55">Every order you have placed with us, newest first.</p>
+    <a href="{% url 'orders:list' %}" class="mt-4 inline-block text-sm font-semibold text-ember underline-grow">
+      View order history &rarr;
+    </a>
+  </section>
+
+</div>
+{% endblock %}

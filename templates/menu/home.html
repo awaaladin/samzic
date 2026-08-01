@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}{{ SITE_NAME }} &mdash; {{ SITE_TAGLINE }}{% endblock %}
+{% block meta_description %}Nigerian cooking done properly &mdash; jollof from the firewood pot, swallow made fresh, grills off the charcoal. Ordered online, delivered hot across Lagos.{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-7xl px-5 pt-6 lg:px-8">
+  <div class="relative overflow-hidden rounded-[28px] bg-ink">
+    <img src="{% static 'img/hero.jpg' %}" alt="{{ SITE_NAME }} party food packs" class="absolute inset-0 h-full w-full object-cover" />
+    <div class="absolute inset-0 bg-gradient-to-r from-ink via-ink/75 to-ink/15"></div>
+    <div class="relative grid gap-10 px-7 py-16 md:grid-cols-12 md:items-end md:px-14 md:py-24">
+      <div class="md:col-span-8">
+        <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-bone/25 px-3 py-1 text-[11px] tracking-[0.2em] text-bone/70">{{ SITE_NAME|upper }}</p>
+        <h1 class="display text-5xl font-extrabold leading-[0.95] text-bone md:text-7xl">Let&rsquo;s handle<br/>your <span class="text-ember">party meals</span></h1>
+        <p class="mt-6 max-w-lg text-sm leading-relaxed text-bone/65 md:text-base">Nigerian cooking done properly &mdash; jollof from the firewood pot, swallow made fresh, grills off the charcoal. Ordered online, delivered hot.</p>
+        <div class="mt-9 flex flex-wrap gap-3">
+          <a href="{% url 'menu:menu' %}" class="rounded-full bg-ember px-7 py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">Order food</a>
+          <a href="{% url 'pages:catering' %}" class="rounded-full border border-bone/30 px-7 py-3.5 text-sm font-medium text-bone transition hover:border-bone">Plan an event</a>
+        </div>
+      </div>
+      <div class="md:col-span-4 md:pb-2">
+        <div class="grid grid-cols-3 gap-6 border-t border-bone/15 pt-6 md:grid-cols-1 md:gap-5">
+          <div><p class="display text-2xl font-bold text-bone">45<span class="text-ember">min</span></p><p class="text-[11px] text-bone/50">Average delivery</p></div>
+          <div><p class="display text-2xl font-bold text-bone">1,200<span class="text-ember">+</span></p><p class="text-[11px] text-bone/50">Events catered</p></div>
+          <div><p class="display text-2xl font-bold text-bone">9<span class="text-ember">am</span>&ndash;9pm</p><p class="text-[11px] text-bone/50">Kitchen hours</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if category_tiles %}
+<section class="mx-auto max-w-7xl px-5 pt-20 lg:px-8">
+  <div class="flex items-end justify-between gap-6 border-b border-ink/10 pb-5">
+    <div>
+      <p class="text-[11px] tracking-[0.2em] text-ember">BY CATEGORY</p>
+      <h2 class="display mt-2 text-3xl font-bold md:text-4xl">Start with a craving</h2>
+    </div>
+    <a href="{% url 'menu:menu' %}" class="hidden text-sm underline-grow sm:block">See everything</a>
+  </div>
+
+  <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    {% for tile in category_tiles %}
+      <a href="{{ tile.category.get_absolute_url }}" class="lift reveal overflow-hidden rounded-2xl border border-ink/10 bg-white p-7">
+        <p class="text-[11px] tracking-[0.2em] text-ember">{{ tile.category.name|upper }}</p>
+        <h3 class="display mt-3 text-2xl font-bold">{{ tile.category.description|default:tile.category.name }}</h3>
+        <div class="imgzoom mt-6 overflow-hidden rounded-xl bg-ink/5">
+          {% if tile.item.image %}
+            <img src="{{ tile.item.image.url }}" alt="{{ tile.item.name }}" loading="lazy" class="h-44 w-full object-cover" />
+          {% else %}
+            <div class="grid h-44 w-full place-items-center text-ink/15">
+              <svg class="h-10 w-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159M18 6h.008v.008H18V6Zm2.25 12V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25h12A2.25 2.25 0 0 0 20.25 18Z"/>
+              </svg>
+            </div>
+          {% endif %}
+        </div>
+        <span class="mt-5 inline-block text-sm font-medium underline-grow">Browse {{ tile.category.name|lower }}</span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if featured_items %}
+<section class="mx-auto max-w-7xl px-5 pt-24 lg:px-8">
+  <div class="flex items-end justify-between gap-6 border-b border-ink/10 pb-5">
+    <div>
+      <p class="text-[11px] tracking-[0.2em] text-ember">TRENDING THIS WEEK</p>
+      <h2 class="display mt-2 text-3xl font-bold md:text-4xl">What Lagos is ordering</h2>
+    </div>
+    <a href="{% url 'menu:menu' %}" class="hidden text-sm underline-grow sm:block">View the full menu</a>
+  </div>
+  <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    {% for item in featured_items %}
+      {% include "menu/_food_card.html" with item=item %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="mx-auto max-w-7xl px-5 pt-24 lg:px-8">
+  <div class="grid items-center gap-10 overflow-hidden rounded-[28px] bg-ink md:grid-cols-2">
+    <img src="{% static 'img/chef.jpg' %}" alt="{{ SITE_NAME }} head chef" loading="lazy" class="h-full max-h-[460px] w-full object-cover object-top" />
+    <div class="px-8 py-12 md:pr-14">
+      <p class="text-[11px] tracking-[0.2em] text-ember">THE KITCHEN</p>
+      <h2 class="display mt-3 text-3xl font-extrabold leading-tight text-bone md:text-4xl">Cooked by people who take it personally</h2>
+      <p class="mt-5 text-sm leading-relaxed text-bone/60">Every tray leaving our kitchen passes the same test: would we serve it at our own table? Sourcing daily, seasoning by hand, no shortcuts in the pot.</p>
+      <div class="mt-8 grid grid-cols-3 gap-4 border-t border-bone/10 pt-6 text-bone">
+        <div><p class="display text-xl font-bold">Daily</p><p class="text-[11px] text-bone/45">Fresh sourcing</p></div>
+        <div><p class="display text-xl font-bold">Sealed</p><p class="text-[11px] text-bone/45">Hot delivery packs</p></div>
+        <div><p class="display text-xl font-bold">Halal</p><p class="text-[11px] text-bone/45">Meat options</p></div>
+      </div>
+      <a href="{% url 'pages:about' %}" class="mt-8 inline-block rounded-full border border-bone/25 px-6 py-3 text-sm text-bone transition hover:border-ember hover:text-ember">Our story</a>
+    </div>
+  </div>
+</section>
+
+<section class="mx-auto max-w-7xl px-5 pt-24 lg:px-8">
+  <div class="grid gap-5 md:grid-cols-3">
+    <div class="reveal rounded-2xl border border-ink/10 bg-white p-8">
+      <p class="display text-4xl font-extrabold text-ember/25">01</p>
+      <h3 class="display mt-4 text-xl font-bold">Choose your plates</h3>
+      <p class="mt-2 text-sm text-ink/55">Browse the menu, set quantities, add extras like moi moi or a drink.</p>
+    </div>
+    <div class="reveal rounded-2xl border border-ink/10 bg-white p-8">
+      <p class="display text-4xl font-extrabold text-ember/25">02</p>
+      <h3 class="display mt-4 text-xl font-bold">Checkout in a minute</h3>
+      <p class="mt-2 text-sm text-ink/55">Your saved address fills itself in. Pay on delivery for now &mdash; card payment is coming.</p>
+    </div>
+    <div class="reveal rounded-2xl border border-ink/10 bg-white p-8">
+      <p class="display text-4xl font-extrabold text-ember/25">03</p>
+      <h3 class="display mt-4 text-xl font-bold">Eat while it&rsquo;s hot</h3>
+      <p class="mt-2 text-sm text-ink/55">Rider dispatched from the nearest kitchen. Follow it from your account.</p>
+    </div>
+  </div>
+</section>
+
+<section class="mx-auto mt-24 max-w-7xl px-5 lg:px-8">
+  <div class="rounded-[28px] border border-ink/10 bg-white px-8 py-14 text-center md:px-16">
+    <h2 class="display mx-auto max-w-2xl text-3xl font-extrabold leading-tight md:text-5xl">When words aren&rsquo;t enough, <span class="text-ember">send food</span></h2>
+    <p class="mx-auto mt-4 max-w-md text-sm text-ink/55">Feeding a crowd? Tell us the headcount and we&rsquo;ll quote within 24 hours.</p>
+    <div class="mt-8 flex flex-wrap justify-center gap-3">
+      <a href="{% url 'pages:catering' %}" class="rounded-full bg-ember px-7 py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">Request a quote</a>
+      <a href="{% url 'pages:contact' %}" class="rounded-full border border-ink/20 px-7 py-3.5 text-sm transition hover:border-ember hover:text-ember">Talk to us</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

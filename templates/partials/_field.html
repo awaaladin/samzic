@@ -1,0 +1,31 @@
+{% comment %}
+Renders one bound form field in the savory-serve style: a small muted label
+wrapping the widget, with help text and errors underneath. The widget already
+carries its Tailwind classes (see accounts.forms.TailwindFormMixin).
+
+Usage:  {% include "partials/_field.html" with field=form.email %}
+        {% include "partials/_field.html" with field=form.note span=True %}
+
+`span` makes the field occupy both columns inside a two-column grid.
+{% endcomment %}
+<div class="{% if span %}sm:col-span-2{% endif %}">
+  {% if field.field.widget.input_type == 'checkbox' %}
+    <label for="{{ field.id_for_label }}" class="flex cursor-pointer items-start gap-3 text-sm text-ink/70">
+      {{ field }}
+      <span>{{ field.label }}</span>
+    </label>
+  {% else %}
+    <label for="{{ field.id_for_label }}" class="block text-xs text-ink/50">
+      {{ field.label }}{% if field.field.required %}<span class="text-ember"> *</span>{% endif %}
+      <span class="mt-1.5 block">{{ field }}</span>
+    </label>
+  {% endif %}
+
+  {% if field.help_text %}
+    <p class="mt-1.5 text-[11px] leading-relaxed text-ink/45">{{ field.help_text|safe }}</p>
+  {% endif %}
+
+  {% for error in field.errors %}
+    <p class="mt-1.5 text-[11px] text-ember">{{ error }}</p>
+  {% endfor %}
+</div>

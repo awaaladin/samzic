@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Order {{ order.reference }} — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+
+  <nav class="flex flex-wrap items-center gap-2 text-xs text-ink/45" aria-label="Breadcrumb">
+    <a href="{% url 'menu:home' %}" class="underline-grow hover:text-ember">Home</a>
+    <span aria-hidden="true">/</span>
+    <a href="{% url 'orders:list' %}" class="underline-grow hover:text-ember">Orders</a>
+    <span aria-hidden="true">/</span>
+    <span class="text-ink/70">{{ order.reference }}</span>
+  </nav>
+
+  <header class="mt-6 flex flex-wrap items-start justify-between gap-4 border-b border-ink/10 pb-8">
+    <div>
+      <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-ember">Order details</p>
+      <h1 class="display mt-2 text-4xl font-semibold tracking-tight text-ink">{{ order.reference }}</h1>
+      <p class="mt-2 text-sm text-ink/50">Placed {{ order.created_at|date:"M j, Y \a\t g:i A" }}</p>
+    </div>
+    <span class="rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em]
+      {% if order.status == 'delivered' %}bg-emerald-50 text-emerald-700
+      {% elif order.status == 'confirmed' %}bg-ink text-bone
+      {% elif order.status == 'cancelled' %}bg-ember/10 text-ember
+      {% else %}bg-amber-50 text-amber-700{% endif %}">
+      {{ order.get_status_display }}
+    </span>
+  </header>
+
+  {% comment %}
+  Steps come from Order.status_trail so the cancelled branch is handled in Python, not here.
+  Inline grid-template-columns because the step count varies (4 normally, 2 when cancelled),
+  and Tailwind's CDN JIT cannot see a class name built from a template variable.
+  {% endcomment %}
+  <ol class="mt-8 grid gap-2 text-center text-[11px]"
+      style="grid-template-columns: repeat({{ order.status_trail|length }}, minmax(0, 1fr));">
+    {% for label, reached in order.status_trail %}
+      <li>
+        <div class="h-1 rounded-full {% if reached %}bg-ember{% else %}bg-ink/10{% endif %}"></div>
+        <p class="mt-2 font-semibold {% if reached %}text-ink{% else %}text-ink/35{% endif %}">{{ label }}</p>
+      </li>
+    {% endfor %}
+  </ol>
+
+  <div class="mt-10 rounded-xl2 border border-ink/10 bg-white p-6 sm:p-8">
+    <h2 class="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/45">Plates</h2>
+    <ul class="mt-4 divide-y divide-ink/8">
+      {% for item in order.items.all %}
+        <li class="flex items-start justify-between gap-3 py-4">
+          <span class="flex-1">
+            {% if item.food_item %}
+              <a href="{{ item.food_item.get_absolute_url }}" class="font-medium text-ink transition hover:text-ember">{{ item.name }}</a>
+            {% else %}
+              {# The dish left the menu; the snapshot name survives. #}
+              <span class="font-medium text-ink">{{ item.name }}</span>
+            {% endif %}
+            <span class="mt-0.5 block text-xs text-ink/45">
+              {{ item.quantity }} &times; &#8358;{{ item.price|floatformat:2|intcomma }}
+            </span>
+          </span>
+          <span class="shrink-0 font-semibold text-ink">&#8358;{{ item.total_price|floatformat:2|intcomma }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <dl class="mt-5 space-y-2.5 border-t border-ink/10 pt-5 text-sm">
+      <div class="flex justify-between">
+        <dt class="text-ink/55">Subtotal</dt>
+        <dd class="font-semibold text-ink">&#8358;{{ order.subtotal|floatformat:2|intcomma }}</dd>
+      </div>
+      <div class="flex justify-between">
+        <dt class="text-ink/55">Delivery</dt>
+        <dd class="font-semibold text-ink">
+          {% if order.delivery_fee == 0 %}
+            <span class="text-emerald-600">Free</span>
+          {% else %}
+            &#8358;{{ order.delivery_fee|floatformat:2|intcomma }}
+          {% endif %}
+        </dd>
+      </div>
+      <div class="flex items-baseline justify-between border-t border-ink/10 pt-3">
+        <dt class="font-semibold text-ink">Total</dt>
+        <dd class="display text-2xl font-semibold text-ember">&#8358;{{ order.total_price|floatformat:2|intcomma }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <div class="mt-6 grid gap-6 sm:grid-cols-2">
+    <section class="rounded-xl2 border border-ink/10 bg-white p-6">
+      <h2 class="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/45">Delivering to</h2>
+      <p class="mt-3 text-sm font-medium text-ink">{{ order.full_name }}</p>
+      <p class="text-sm text-ink/55">{{ order.phone_number }}</p>
+      {% if order.email %}<p class="text-sm text-ink/55">{{ order.email }}</p>{% endif %}
+      <p class="mt-2 whitespace-pre-line text-sm text-ink/55">{{ order.delivery_address }}</p>
+      {% if order.note %}
+        <p class="mt-4 rounded-xl bg-bone p-3 text-xs text-ink/70">
+          <span class="font-semibold text-ink">Note for rider:</span> {{ order.note }}
+        </p>
+      {% endif %}
+    </section>
+
+    <section class="rounded-xl2 border border-ink/10 bg-white p-6">
+      <h2 class="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink/45">Payment</h2>
+      <p class="mt-3 text-sm font-medium text-ink">{{ order.get_payment_method_display }}</p>
+      <p class="mt-1 text-sm">
+        {% if order.is_paid %}
+          <span class="font-semibold text-emerald-600">Paid</span>
+          <span class="text-ink/40">&middot; {{ order.paid_at|date:"M j, g:i A" }}</span>
+        {% else %}
+          <span class="font-semibold text-amber-600">Unpaid</span>
+          <span class="text-ink/40">&middot; settle with the rider</span>
+        {% endif %}
+      </p>
+      {% if order.payment_reference %}
+        <p class="mt-2 text-xs text-ink/40">Ref: {{ order.payment_reference }}</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <div class="mt-10 flex flex-col gap-3 sm:flex-row">
+    <a href="{% url 'orders:list' %}"
+       class="lift rounded-full border border-ink/15 bg-white px-7 py-3.5 text-center text-sm font-semibold text-ink transition hover:border-ink/30">
+      &larr; All orders
+    </a>
+    <a href="{% url 'menu:menu' %}"
+       class="lift rounded-full bg-ember px-7 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-ember-dark">
+      Order again
+    </a>
+  </div>
+
+  <p class="mt-10 text-center text-sm text-ink/50">
+    Something wrong with this order? Call
+    <a href="tel:{{ SITE_PHONE }}" class="font-semibold text-ember underline-grow">{{ SITE_PHONE }}</a>
+  </p>
+
+</div>
+{% endblock %}

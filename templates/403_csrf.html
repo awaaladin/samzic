@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% comment %}
+Shown when a POST fails CSRF validation. Almost always a form that sat open
+until its token expired, or cookies being blocked — so the copy explains the
+fix rather than accusing the visitor of anything.
+{% endcomment %}
+
+{% block title %}Session expired — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center px-5 text-center">
+  <span class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-ember/10 text-ember">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+    </svg>
+  </span>
+  <h1 class="display mt-6 text-3xl font-extrabold text-ink md:text-4xl">That form went cold</h1>
+  <p class="mt-4 max-w-md text-sm leading-relaxed text-ink/55">
+    The page was open long enough for its security token to expire, so we didn&rsquo;t
+    submit it. Nothing was charged and nothing was lost &mdash; go back, reload the
+    page, and send it once more.
+  </p>
+  <p class="mt-3 max-w-md text-xs text-ink/40">
+    If it keeps happening, check that your browser allows cookies for this site.
+  </p>
+  <div class="mt-9 flex flex-wrap justify-center gap-3">
+    <a href="{% url 'menu:menu' %}"
+       class="rounded-full bg-ember px-7 py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">
+      Browse the menu
+    </a>
+    <a href="{% url 'cart:detail' %}"
+       class="rounded-full border border-ink/20 px-7 py-3.5 text-sm transition hover:border-ember hover:text-ember">
+      Check your cart
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% comment %}
+Extends base.html on purpose: a 404 only means the URL missed, so the nav,
+cart badge and context processors are all still trustworthy. 500.html cannot
+make that assumption and stays standalone.
+{% endcomment %}
+
+{% block title %}Page not found — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center px-5 text-center">
+  <p class="display text-[110px] font-extrabold leading-none text-ink/10">404</p>
+  <h1 class="display mt-4 text-3xl font-extrabold text-ink md:text-4xl">This plate isn&rsquo;t on the menu</h1>
+  <p class="mt-4 max-w-md text-sm leading-relaxed text-ink/55">
+    The page you&rsquo;re looking for has been moved, removed, or never existed.
+  </p>
+  <div class="mt-9 flex flex-wrap justify-center gap-3">
+    <a href="{% url 'menu:menu' %}"
+       class="rounded-full bg-ember px-7 py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">
+      Browse the menu
+    </a>
+    <a href="{% url 'menu:home' %}"
+       class="rounded-full border border-ink/20 px-7 py-3.5 text-sm transition hover:border-ember hover:text-ember">
+      Back to home
+    </a>
+  </div>
+  <p class="mt-8 text-sm text-ink/50">
+    Or call us on <a href="tel:{{ SITE_PHONE }}" class="font-semibold text-ember underline-grow">{{ SITE_PHONE }}</a>
+  </p>
+</div>
+{% endblock %}

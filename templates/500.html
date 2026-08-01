@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+  Deliberately standalone: no template inheritance, no context processors, no URL
+  reversing. If something is broken badly enough to raise a 500, the base template
+  and its context may be part of what's broken. This page must render regardless,
+  so the brand values below are hardcoded rather than read from settings.
+
+  Kept as an HTML comment rather than a Django one so nothing in here is parsed
+  as a template tag.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Something went wrong</title>
+  <style>
+    body { margin:0; background:#F4F2EF; color:#141414;
+           font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+           -webkit-font-smoothing:antialiased; }
+    .wrap { min-height:100vh; display:flex; flex-direction:column; align-items:center;
+            justify-content:center; text-align:center; padding:0 20px; }
+    .code { font-size:110px; font-weight:800; line-height:1; letter-spacing:-0.02em;
+            color:rgba(20,20,20,.10); margin:0; }
+    h1 { margin:16px 0 0; font-size:30px; font-weight:800; letter-spacing:-0.02em; }
+    p { margin:16px 0 0; max-width:28rem; font-size:14px; line-height:1.7;
+        color:rgba(20,20,20,.55); }
+    .actions { margin-top:36px; display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+    a { display:inline-block; border-radius:999px; padding:14px 28px; font-size:14px;
+        text-decoration:none; transition:background .25s ease, border-color .25s ease, color .25s ease; }
+    .primary { background:#C21807; color:#F4F2EF; font-weight:500; }
+    .primary:hover { background:#9C1205; }
+    .ghost { border:1px solid rgba(20,20,20,.2); color:#141414; }
+    .ghost:hover { border-color:#C21807; color:#C21807; }
+    .mark { font-size:11px; letter-spacing:.22em; color:rgba(20,20,20,.35); margin-top:48px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="code">500</p>
+    <h1>Something went wrong on our end</h1>
+    <p>
+      Our kitchen hit a snag. The team has been notified &mdash; please try again in a moment.
+      Your order details are safe.
+    </p>
+    <div class="actions">
+      <a class="primary" href="/">Back to home</a>
+      <a class="ghost" href="tel:+2348000000000">Call to order</a>
+    </div>
+    <p class="mark">SAMZIC FOOD EMPIRE</p>
+  </div>
+</body>
+</html>

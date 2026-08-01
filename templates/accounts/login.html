@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Log in &mdash; {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}Log in to your Samzic Foods Empire account to check out faster and track your orders.{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-md px-5 py-14 lg:py-20">
+
+  <div class="text-center">
+    <p class="text-[11px] tracking-[0.2em] text-ember">WELCOME BACK</p>
+    <h1 class="display mt-3 text-4xl font-extrabold leading-tight">Log in to order</h1>
+    <p class="mt-2.5 text-sm text-ink/55">Your saved details are waiting at checkout.</p>
+  </div>
+
+  <form method="post" novalidate
+        class="mt-9 rounded-[28px] border border-ink/10 bg-white p-7 shadow-[0_24px_60px_-40px_rgba(20,20,20,.5)] sm:p-9">
+    {% csrf_token %}
+
+    {% if form.errors %}
+      <div role="alert" class="rounded-2xl border border-ember/25 bg-ember/[0.07] px-5 py-4">
+        <div class="flex items-start gap-3">
+          <svg class="mt-0.5 shrink-0 text-ember" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7.5v5M12 16h.01"/>
+          </svg>
+          <div class="text-sm">
+            <p class="display font-bold text-ember-dark">That did not let you in</p>
+            <ul class="mt-1.5 space-y-1 text-xs leading-relaxed text-ink/65">
+              {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+              {% for field in form %}
+                {% for error in field.errors %}<li><span class="text-ink/45">{{ field.label }}:</span> {{ error }}</li>{% endfor %}
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="{% if form.errors %}mt-6 {% endif %}space-y-5">
+      {% include "partials/_field.html" with field=form.username %}
+      {% include "partials/_field.html" with field=form.password %}
+    </div>
+
+    {# Preserves ?next= so login redirects back to whatever needed auth. #}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+    <button type="submit"
+            class="mt-7 w-full rounded-full bg-ember px-6 py-3.5 text-sm font-semibold text-bone transition hover:bg-ember-dark focus:outline-none focus:ring-2 focus:ring-ember/40 focus:ring-offset-2 focus:ring-offset-white">
+      Log in
+    </button>
+
+    <p class="mt-6 border-t border-ink/10 pt-5 text-center text-sm text-ink/55">
+      New here?
+      <a href="{% url 'accounts:signup' %}" class="font-semibold text-ember underline-grow">Create an account</a>
+    </p>
+  </form>
+
+  <p class="mt-6 text-center text-[11px] leading-relaxed text-ink/40">
+    Trouble getting in? Call <a href="tel:{{ SITE_PHONE }}" class="text-ink/60 hover:text-ember">{{ SITE_PHONE }}</a>
+    and we will sort it out.
+  </p>
+</section>
+{% endblock %}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Samzic Foods Empire">
+  <!-- Ink round plate with an ember S and a cloche dome silhouette. -->
+  <rect width="64" height="64" rx="14" fill="#141414"/>
+  <circle cx="32" cy="32" r="21" fill="none" stroke="#C21807" stroke-width="2.5" opacity=".55"/>
+  <path d="M39.5 22.5c-2.2-1.9-5-2.9-8-2.9-5 0-8.6 2.7-8.6 6.7 0 3.6 2.6 5.5 7.3 6.7 4.2 1.1 5.6 1.9 5.6 3.7 0 1.9-1.9 3.2-4.9 3.2-3 0-5.7-1.2-7.9-3.2"
+        fill="none" stroke="#F4F2EF" stroke-width="5.2" stroke-linecap="round"/>
+  <path d="M21 46h22" stroke="#C21807" stroke-width="3.4" stroke-linecap="round"/>
+</svg>
