@@ -45,7 +45,9 @@ if ON_VERCEL:
         env("VERCEL_URL", default=""),
         env("VERCEL_PROJECT_PRODUCTION_URL", default=""),
     ):
-        if _host:
+        # The two are the same string on a production deployment, so guard
+        # against listing the host twice.
+        if _host and _host not in ALLOWED_HOSTS:
             ALLOWED_HOSTS.append(_host)
             CSRF_TRUSTED_ORIGINS.append(f"https://{_host}")
 
@@ -87,7 +89,19 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Last on purpose: it must wrap the view closely enough that MessageMiddleware
+    # still runs afterwards, or flash messages read during the re-render would be
+    # marked consumed without ever being written back.
+    "config.middleware.BrandedErrorPagesMiddleware",
 ]
+
+# With DEBUG on, Django answers a missing URL with its own debug page and the
+# custom handlers below never fire — so templates/404.html is invisible in
+# development. This makes 400/403/404 render the site's pages locally too.
+# Set to False in .env to get Django's "Using the URLconf defined in..." page
+# back while debugging a routing problem. No effect when DEBUG is False: the
+# real handlers are already serving these templates.
+BRANDED_ERROR_PAGES = env.bool("DJANGO_BRANDED_ERROR_PAGES", default=True)
 
 ROOT_URLCONF = "config.urls"
 
@@ -106,6 +120,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.media",
                 # Exposes cart totals to every template (navbar badge).
                 "cart.context_processors.cart",
                 # Exposes SITE_NAME and friends.
@@ -181,7 +196,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LOGIN_URL = "accounts:login"
-LOGIN_REDIRECT_URL = "menu:home"
+LOGIN_REDIRECT_URL = "accounts:profile"
 LOGOUT_REDIRECT_URL = "menu:home"
 
 # ---------------------------------------------------------------------------

@@ -6,3 +6,65 @@
  */
 
 /* Add any custom overrides or non-Tailwind styles here. */
+
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+.rounded-xl2 {
+  border-radius: 1.75rem;
+}
+
+.form-radio-label {
+  transition: border-color .25s ease, background-color .25s ease;
+}
+
+.form-radio-label:has(input:checked) {
+  border-color: #C21807;
+  background-color: rgba(252,241,236,0.95);
+}
+
+.form-radio-label input:checked + span {
+  color: #141414;
+}
+
+.signup-carousel {
+  position: relative;
+  display: flex;
+  height: 100%;
+  width: 300%;
+  animation: signup-slide 24s ease-in-out infinite;
+}
+
+.signup-slide {
+  flex: 1 0 33.3333%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.signup-carousel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(194,24,7,0.16), rgba(20,20,20,0.60));
+  pointer-events: none;
+}
+
+@keyframes signup-slide {
+  0%, 30% { transform: translateX(0); }
+  33%, 63% { transform: translateX(-33.3333%); }
+  66%, 96% { transform: translateX(-66.6667%); }
+  100% { transform: translateX(0); }
+}
+
+@media (max-width: 1024px) {
+  .signup-carousel { animation-duration: 18s; }
+}
+
+@media (max-width: 768px) {
+  .signup-carousel {
+    animation-duration: 14s;
+  }
+}

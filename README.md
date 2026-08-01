@@ -1,18 +1,18 @@
 # Samzic Foods Empire
 
-A fullstack Django restaurant ordering system with session-based cart, user authentication, and order management. Built with Django Templates, Tailwind CSS (CDN), and SQLite (structured for PostgreSQL).
+A modern Django restaurant ordering application for quick food delivery, menu browsing, and order tracking. The project uses Django templates, Tailwind CSS, session-based cart storage, and is configured for SQLite locally with easy PostgreSQL deployment.
 
-## Features
+## Key Features
 
-- **Menu browsing** — category filter, search, pagination
-- **Session cart** — add, update, remove, view totals with delivery fee
-- **User accounts** — signup, login, profile with delivery address
-- **Checkout** — prefilled from profile, order placement with atomic transaction
-- **Order history** — list, detail, status tracking (pending → confirmed → delivered)
-- **Payment abstraction** — Pay on Delivery active; Paystack seam ready
-- **Marketing pages** — About, Catering quote form, Contact message form
-- **Django Admin** — manage categories, food items, orders, catering/contact enquiries
-- **Error pages** — custom 404 (extends base) and standalone 500
+- Menu browsing with categories, search, and pagination
+- Session cart with add, update, remove, and delivery fee calculation
+- User authentication, signup, login, and profile delivery details
+- Checkout with profile prefill and atomic order placement
+- Order history with status tracking and detailed order pages
+- Payment abstraction supporting Pay on Delivery today and Paystack-ready integration
+- Marketing pages: About, Catering request, Contact form
+- Django admin for managing menu items, categories, orders, and messages
+- Custom 404 and 500 error pages
 
 ## Tech Stack
 
@@ -64,17 +64,26 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-`.env` is git-ignored. The defaults work for local development:
+`.env` is git-ignored and is the place to store your local secrets and database URL.
+For local development, you can leave `DATABASE_URL` unset and the project will use SQLite.
 
 ```env
 DJANGO_DEBUG=True
 DJANGO_SECRET_KEY=django-insecure-dev-only-key-change-in-production
 DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1]
 
-# Leave DATABASE_URL unset to use SQLite (db.sqlite3).
-# For PostgreSQL: DATABASE_URL=postgres://user:pass@localhost:5432/dbname
+# Set this when you want the backend to use PostgreSQL instead of SQLite.
+# DATABASE_URL=postgresql://user:pass@host:5432/dbname
 ```
 
+If you are deploying to Vercel, the same `DATABASE_URL` value should be stored in
+Vercel's Environment Variables and the app will read it from there automatically.
+
+To use PostgreSQL locally for a migration or data check, set:
+
+```env
+USE_POSTGRES=True
+```
 ### 3. Migrate and seed
 
 ```bash
@@ -276,5 +285,6 @@ Specify your license here (e.g., MIT, proprietary, etc.).
 - **Product photos**: Nine dishes ship in `media/food_items/` (jollof.jpg, friedrice.jpg, egusi.jpg, amala.jpg, peppersoup.jpg, suya.jpg, asun.jpg, smallchops.jpg, moimoi.jpg)
 - **Django**: [https://www.djangoproject.com/](https://www.djangoproject.com/)
 - **Tailwind CSS**: [https://tailwindcss.com/](https://tailwindcss.com/)
-#   s a m z i c  
+#   s a m z i c 
+ 
  

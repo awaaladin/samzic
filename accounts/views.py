@@ -9,6 +9,7 @@ from django.urls import reverse_lazy
 
 from .forms import LoginForm, ProfileForm, SignUpForm, UserDetailsForm
 from .models import Profile
+from orders.models import Order
 
 
 def signup(request):
@@ -44,6 +45,9 @@ class CustomLoginView(LoginView):
     def form_valid(self, form):
         messages.success(self.request, f"Welcome back, {form.get_user().username}.")
         return super().form_valid(form)
+
+    def get_success_url(self):
+        return self.get_redirect_url() or reverse_lazy("accounts:profile")
 
     def form_invalid(self, form):
         # No messages.error here — the template renders an error summary inside
@@ -81,9 +85,18 @@ def profile(request):
         profile_form = ProfileForm(instance=profile_obj)
         user_form = UserDetailsForm(instance=request.user)
 
+    orders = request.user.orders.all()[:4]
+    order_counts = {
+        "pending": request.user.orders.filter(status=Order.Status.PENDING).count(),
+        "confirmed": request.user.orders.filter(status=Order.Status.CONFIRMED).count(),
+        "delivered": request.user.orders.filter(status=Order.Status.DELIVERED).count(),
+        "total": request.user.orders.count(),
+    }
     context = {
         "profile_form": profile_form,
         "user_form": user_form,
         "profile": profile_obj,
+        "orders": orders,
+        "order_counts": order_counts,
     }
     return render(request, "accounts/profile.html", context)

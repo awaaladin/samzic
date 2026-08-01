@@ -41,3 +41,39 @@ class ErrorTemplateTests(SimpleTestCase):
     def test_500_template_renders_without_context(self):
         """500.html must not depend on context processors or the database."""
         self.assertGreater(len(render_to_string("500.html")), 100)
+
+
+@override_settings(DEBUG=True, BRANDED_ERROR_PAGES=True, ALLOWED_HOSTS=["testserver"])
+class BrandedErrorPagesInDebugTests(TestCase):
+    """The middleware exists so developers see the real pages, not Django's
+    yellow debug page. Without it the branded templates are unreachable until
+    the site is deployed, which is the wrong time to find a mistake in them."""
+
+    def test_404_is_branded_even_with_debug_on(self):
+        response = self.client.get("/no-such-page-exists/")
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "This plate", status_code=404)
+        self.assertNotContains(response, "Using the URLconf", status_code=404)
+
+    def test_ajax_404_is_left_alone(self):
+        """app.js expects a small response, not a full page of storefront HTML."""
+        response = self.client.get(
+            "/no-such-page-exists/", headers={"x-requested-with": "XMLHttpRequest"}
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertNotContains(response, "This plate", status_code=404)
+
+    def test_admin_404_keeps_django_behaviour(self):
+        response = self.client.get("/admin/no-such-admin-page/")
+        self.assertNotContains(response, "This plate", status_code=404)
+
+    @override_settings(BRANDED_ERROR_PAGES=False)
+    def test_opt_out_restores_the_debug_page(self):
+        """Turning it off must give back the URLconf listing, which is the
+        reason someone would turn it off."""
+        # MiddlewareNotUsed is evaluated when the chain is built, so the
+        # override needs a fresh handler.
+        from django.test import Client
+
+        response = Client().get("/no-such-page-exists/")
+        self.assertNotContains(response, "This plate", status_code=404)

@@ -7,11 +7,30 @@
 <div class="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
 
   <header class="border-b border-ink/10 pb-6">
-    <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-ember">My account</p>
-    <h1 class="display mt-2 text-4xl font-extrabold tracking-tight text-ink">My profile</h1>
-    <p class="mt-2 text-sm text-ink/55">
-      We prefill checkout from here, so keep your address and phone number current.
-    </p>
+    <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-ember">My account</p>
+        <h1 class="display mt-2 text-4xl font-extrabold tracking-tight text-ink">My profile</h1>
+        <p class="mt-2 text-sm text-ink/55">
+          We prefill checkout from here, so keep your address and phone number current.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <a href="{% url 'menu:menu' %}" class="rounded-full border border-ink/20 bg-white px-5 py-2 text-sm font-semibold text-ink transition hover:border-ember hover:text-ember">
+          Browse menu
+        </a>
+        <a href="{% url 'orders:list' %}" class="rounded-full border border-ink/20 bg-white px-5 py-2 text-sm font-semibold text-ink transition hover:border-ember hover:text-ember">
+          Order history
+        </a>
+        <form method="post" action="{% url 'accounts:logout' %}" class="inline">
+          {% csrf_token %}
+          <button type="submit" class="rounded-full border border-ink/20 bg-white px-5 py-2 text-sm font-semibold text-ink transition hover:border-ember hover:text-ember">
+            Log out
+          </button>
+        </form>
+      </div>
+    </div>
   </header>
 
   {% if not profile.is_complete %}
@@ -23,6 +42,38 @@
 
   <form method="post" novalidate class="mt-8 space-y-8">
     {% csrf_token %}
+
+    <section class="grid gap-8 rounded-2xl border border-ink/10 bg-white p-6 sm:p-8 lg:grid-cols-[2fr_1fr]">
+      <div>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-ember">Account dashboard</p>
+        <h2 class="display mt-2 text-3xl font-extrabold tracking-tight text-ink">Your account</h2>
+        <p class="mt-2 text-sm text-ink/55">Update your delivery details and check the latest order status in one place.</p>
+      </div>
+
+      <div class="grid gap-3 rounded-3xl border border-ink/10 bg-bone/80 p-5">
+        <div class="flex items-center justify-between gap-4 rounded-3xl bg-white px-4 py-4">
+          <div>
+            <p class="text-[11px] uppercase tracking-[0.2em] text-ink/50">Total orders</p>
+            <p class="text-2xl font-bold text-ink">{{ order_counts.total }}</p>
+          </div>
+          <span class="rounded-full bg-ember/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-ember">All</span>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-3">
+          <div class="rounded-3xl bg-white px-4 py-4 text-sm text-ink">
+            <p class="text-[11px] uppercase tracking-[0.2em] text-ink/50">Pending</p>
+            <p class="mt-2 text-xl font-semibold">{{ order_counts.pending }}</p>
+          </div>
+          <div class="rounded-3xl bg-white px-4 py-4 text-sm text-ink">
+            <p class="text-[11px] uppercase tracking-[0.2em] text-ink/50">Confirmed</p>
+            <p class="mt-2 text-xl font-semibold">{{ order_counts.confirmed }}</p>
+          </div>
+          <div class="rounded-3xl bg-white px-4 py-4 text-sm text-ink">
+            <p class="text-[11px] uppercase tracking-[0.2em] text-ink/50">Delivered</p>
+            <p class="mt-2 text-xl font-semibold">{{ order_counts.delivered }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section class="rounded-2xl border border-ink/10 bg-white p-6 sm:p-8">
       <h2 class="display text-lg font-bold text-ink">Account</h2>
@@ -77,12 +128,41 @@
   </form>
 
   <section class="mt-10 rounded-2xl border border-ink/10 bg-white p-6 sm:p-8">
-    <h2 class="display text-lg font-bold text-ink">Your orders</h2>
-    <p class="mt-1 text-sm text-ink/55">Every order you have placed with us, newest first.</p>
-    <a href="{% url 'orders:list' %}" class="mt-4 inline-block text-sm font-semibold text-ember underline-grow">
-      View order history &rarr;
-    </a>
-  </section>
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h2 class="display text-lg font-bold text-ink">Recent orders</h2>
+        <p class="mt-1 text-sm text-ink/55">Latest purchases and their current status.</p>
+      </div>
+      <a href="{% url 'orders:list' %}" class="rounded-full border border-ink/20 px-5 py-2 text-sm font-semibold transition hover:border-ember hover:text-ember">
+        See full order history
+      </a>
+    </div>
 
+    {% if orders %}
+      <div class="mt-6 space-y-4">
+        {% for order in orders %}
+          <a href="{% url 'orders:detail' order.reference %}" class="lift block rounded-3xl border border-ink/10 bg-bone px-5 py-5 transition hover:border-ember/30">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div class="min-w-0">
+                <p class="text-sm uppercase tracking-[0.16em] text-ink/50">{{ order.created_at|date:"j M Y" }}</p>
+                <p class="mt-2 text-lg font-semibold text-ink">{{ order.reference }}</p>
+                <p class="mt-2 text-sm text-ink/60">{{ order.item_count }} item{{ order.item_count|pluralize }} • {{ order.get_payment_method_display }}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xl font-bold text-ink">₦{{ order.total_price|floatformat:2|intcomma }}</p>
+                <span class="mt-1 inline-block rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-ink">
+                  {{ order.get_status_display }}
+                </span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="mt-6 rounded-3xl border border-ink/10 bg-bone p-8 text-center text-sm text-ink/55">
+        You have not placed any orders yet. Start with the menu and your latest order will appear here.
+      </div>
+    {% endif %}
+  </section>
 </div>
 {% endblock %}
