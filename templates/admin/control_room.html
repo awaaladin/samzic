@@ -1,0 +1,82 @@
+{% extends "admin/base.html" %}
+{% comment %}
+Custom control room landing page. This is a separate staff-only view on top of
+Django's own admin pages so the site can offer a branded operations dashboard
+while keeping the default admin fully intact.
+{% endcomment %}
+
+{% block title %}Control room | Samzic Foods Empire{% endblock %}
+
+{% block content %}
+<div class="module" style="background:#fff;border:1px solid rgba(20,20,20,.1);padding:26px 28px;margin-bottom:22px;border-radius:12px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+    <div>
+      <p style="margin:0 0 0.5rem;font-size:0.75rem;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A;">Control room</p>
+      <h1 style="margin:0;font-size:2rem;font-family:'Bricolage Grotesque',sans-serif;">Kitchen command center</h1>
+      <p style="margin:.75rem 0 0;color:#4A4A4A;max-width:55ch;">A quick staff dashboard for orders, payments, menu coverage, and support enquiries. Use the full Django admin for detailed model editing and history.</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+      <a href="{% url 'admin:index' %}" class="button" style="background:#C21807;color:#F4F2EF;padding:0.9rem 1.25rem;border-radius:999px;text-decoration:none;">Open full Django admin</a>
+      <a href="/" class="button" style="background:#141414;color:#F4F2EF;padding:0.9rem 1.25rem;border-radius:999px;text-decoration:none;">View storefront</a>
+    </div>
+  </div>
+</div>
+
+{% if dashboard %}
+<div class="dashboard-grid" style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));margin-bottom:22px;">
+  <div class="dashboard-card accent" style="background:#FDF3F1;border:1px solid rgba(194,24,7,.35);padding:20px;border-radius:12px;">
+    <span class="dashboard-label" style="font-size:0.75rem;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A;">Orders today</span>
+    <span class="dashboard-figure" style="display:block;margin-top:0.75rem;font-size:2rem;font-family:'Bricolage Grotesque',sans-serif;color:#141414;">{{ dashboard.orders_today }}</span>
+    <p class="dashboard-note" style="margin-top:0.75rem;font-size:0.85rem;color:#6B6B6B;">{{ dashboard.orders_week }} in the last 7 days</p>
+  </div>
+  <div class="dashboard-card" style="background:#fff;border:1px solid rgba(20,20,20,.1);padding:20px;border-radius:12px;">
+    <span class="dashboard-label" style="font-size:0.75rem;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A;">Pending</span>
+    <span class="dashboard-figure" style="display:block;margin-top:0.75rem;font-size:2rem;font-family:'Bricolage Grotesque',sans-serif;color:#141414;">{{ dashboard.orders_pending }}</span>
+    <p class="dashboard-note" style="margin-top:0.75rem;font-size:0.85rem;color:#6B6B6B;">Awaiting kitchen confirmation</p>
+  </div>
+  <div class="dashboard-card" style="background:#fff;border:1px solid rgba(20,20,20,.1);padding:20px;border-radius:12px;">
+    <span class="dashboard-label" style="font-size:0.75rem;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A;">Confirmed</span>
+    <span class="dashboard-figure" style="display:block;margin-top:0.75rem;font-size:2rem;font-family:'Bricolage Grotesque',sans-serif;color:#141414;">{{ dashboard.orders_confirmed }}</span>
+    <p class="dashboard-note" style="margin-top:0.75rem;font-size:0.85rem;color:#6B6B6B;">In the kitchen now</p>
+  </div>
+  <div class="dashboard-card" style="background:#fff;border:1px solid rgba(20,20,20,.1);padding:20px;border-radius:12px;">
+    <span class="dashboard-label" style="font-size:0.75rem;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A;">Delivered</span>
+    <span class="dashboard-figure" style="display:block;margin-top:0.75rem;font-size:2rem;font-family:'Bricolage Grotesque',sans-serif;color:#141414;">{{ dashboard.orders_delivered }}</span>
+    <p class="dashboard-note" style="margin-top:0.75rem;font-size:0.85rem;color:#6B6B6B;">All time</p>
+  </div>
+  <div class="dashboard-card" style="background:#fff;border:1px solid rgba(20,20,20,.1);padding:20px;border-radius:12px;">
+    <span class="dashboard-label" style="font-size:0.75rem;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A;">Collected</span>
+    <span class="dashboard-figure" style="display:block;margin-top:0.75rem;font-size:2rem;font-family:'Bricolage Grotesque',sans-serif;color:#141414;">&#8358;{{ dashboard.revenue_paid|floatformat:0 }}</span>
+    <p class="dashboard-note" style="margin-top:0.75rem;font-size:0.85rem;color:#6B6B6B;">{{ dashboard.unpaid_count }} unpaid</p>
+  </div>
+</div>
+
+<div class="module" style="background:#fff;border:1px solid rgba(20,20,20,.1);padding:22px;border-radius:12px;">
+  <p class="dashboard-section-title" style="margin:0 0 16px;font-size:0.8rem;letter-spacing:.16em;text-transform:uppercase;color:#8A8A8A;">Latest orders</p>
+  <table style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr>
+        <th style="text-align:left;padding:12px 14px;font-size:0.8rem;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;">Reference</th>
+        <th style="text-align:left;padding:12px 14px;font-size:0.8rem;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;">Customer</th>
+        <th style="text-align:left;padding:12px 14px;font-size:0.8rem;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;">Total</th>
+        <th style="text-align:left;padding:12px 14px;font-size:0.8rem;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;">Status</th>
+        <th style="text-align:left;padding:12px 14px;font-size:0.8rem;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;">Payment</th>
+        <th style="text-align:left;padding:12px 14px;font-size:0.8rem;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;">Placed</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in dashboard.recent_orders %}
+      <tr style="border-top:1px solid rgba(20,20,20,.08);">
+        <td style="padding:12px 14px;font-size:0.95rem;color:#141414;"><a href="{% url 'admin:orders_order_change' order.pk %}" style="color:#C21807;text-decoration:none;font-weight:600;">{{ order.reference }}</a></td>
+        <td style="padding:12px 14px;font-size:0.95rem;color:#141414;">{{ order.full_name }}</td>
+        <td style="padding:12px 14px;font-size:0.95rem;color:#141414;">&#8358;{{ order.total_price|floatformat:0 }}</td>
+        <td style="padding:12px 14px;font-size:0.95rem;"> <span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:0.75rem;font-weight:700;color:#141414;background:#F4F2EF;text-transform:uppercase;">{{ order.get_status_display }}</span></td>
+        <td style="padding:12px 14px;font-size:0.95rem;color:#141414;">{% if order.payment_status == "paid" %}<span style="color:#0F766E;background:#DCFCE7;padding:4px 10px;border-radius:999px;font-size:0.75rem;font-weight:700;text-transform:uppercase;">Paid</span>{% else %}<span style="color:#9C1205;background:#FEE2E2;padding:4px 10px;border-radius:999px;font-size:0.75rem;font-weight:700;text-transform:uppercase;">Unpaid</span>{% endif %}</td>
+        <td style="padding:12px 14px;font-size:0.95rem;color:#6B6B6B;">{{ order.created_at|date:"j M, H:i" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

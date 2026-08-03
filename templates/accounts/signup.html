@@ -1,177 +1,72 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Create an account &mdash; {{ SITE_NAME }}{% endblock %}
-{% block meta_description %}Create a Samzic Foods Empire account for faster checkout, saved delivery details and order tracking.{% endblock %}
+{% block title %}Create account — {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}Create a Samzic Food Empire account for faster checkout and saved delivery details.{% endblock %}
 
 {% block content %}
-<section class="mx-auto max-w-6xl px-5 py-12 lg:px-8 lg:py-16">
-  <div class="grid w-full max-w-6xl overflow-hidden rounded-[40px] border border-ink/10 lg:grid-cols-[1.05fr_0.95fr]">
+<section class="mx-auto grid max-w-7xl gap-12 px-5 py-14 lg:grid-cols-2 lg:px-8">
+  <div class="order-2 hidden overflow-hidden rounded-[28px] bg-ink lg:order-1 lg:block">
+    <img src="{% static 'img/hero.jpg' %}" alt="Samzic food" class="h-[560px] w-full object-cover opacity-70" />
+  </div>
+  <div class="order-1 lg:order-2 lg:py-10">
+    <p class="text-[11px] tracking-[0.2em] text-ember">SAMZIC ACCOUNT</p>
+    <h1 class="display mt-3 text-4xl font-extrabold md:text-5xl">Create your account</h1>
+    <p class="mt-3 max-w-sm text-sm text-ink/55">Save addresses, reorder in one tap and get first access to seasonal menus.</p>
 
-    {# Left rail: the reason to sign up. Hidden on small screens so the form leads. #}
-    <aside class="relative hidden min-h-[620px] overflow-hidden bg-ink/5 p-8 lg:block">
-      <div class="absolute inset-0">
-        <div class="signup-carousel h-full w-full">
-          <div class="signup-slide" style="background-image:url('{{ MEDIA_URL }}food_items/jollof.jpg')"></div>
-          <div class="signup-slide" style="background-image:url('{{ MEDIA_URL }}food_items/suya.jpg')"></div>
-          <div class="signup-slide" style="background-image:url('{{ MEDIA_URL }}food_items/egusi.jpg')"></div>
-        </div>
-        <div class="absolute inset-0 bg-gradient-to-br from-ink/90 via-ink/60 to-ink/95"></div>
-      </div>
-      <div class="relative z-10 flex h-full flex-col justify-between gap-8 text-white">
-        <div>
-          <p class="text-[11px] tracking-[0.2em] text-ember/40">JOIN THE TABLE</p>
-          <h1 class="display mt-3 text-5xl font-extrabold leading-[1.02]">
-            One account.<br/>Every order,<br/><span class="text-ember">two taps away.</span>
-          </h1>
-          <p class="mt-5 max-w-sm text-sm leading-relaxed text-white/80">
-            Save your delivery details once and order red-hot meals in two taps.
-          </p>
-        </div>
+    <form method="post" novalidate id="signup-form" class="mt-8 max-w-sm space-y-4">
+      {% csrf_token %}
 
-        <div class="mt-10 space-y-5">
-          <div class="flex items-start gap-4">
-            <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-white">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-            </span>
-            <div>
-              <p class="display text-sm font-bold">Checkout that fills itself</p>
-              <p class="mt-1 text-xs leading-relaxed text-white/75">Name, phone and address pulled straight from your profile.</p>
-            </div>
-          </div>
-          <div class="flex items-start gap-4">
-            <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-white">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg>
-            </span>
-            <div>
-              <p class="display text-sm font-bold">Track every order</p>
-              <p class="mt-1 text-xs leading-relaxed text-white/75">Pending, confirmed, delivered &mdash; with a reference you can quote on the phone.</p>
-            </div>
-          </div>
-          <div class="flex items-start gap-4">
-            <span class="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-white">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></svg>
-            </span>
-            <div>
-              <p class="display text-sm font-bold">Nothing charged today</p>
-              <p class="mt-1 text-xs leading-relaxed text-white/75">Pay the rider on delivery. No card details stored, ever.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <div class="w-full">
-      <form method="post" novalidate id="signup-form"
-            class="flex min-h-[620px] flex-col justify-between bg-white p-7 sm:p-9 lg:p-10">
-        {% csrf_token %}
-
-        <div>
-          <div class="lg:hidden">
-            <p class="text-[11px] tracking-[0.2em] text-ember">JOIN THE TABLE</p>
-            <h1 class="display mt-2 text-3xl font-extrabold leading-tight">Create your account</h1>
-            <p class="mt-2 text-sm text-ink/55">Save your details once, order in two taps.</p>
-          </div>
-
-          <div class="rounded-[28px] bg-bone/70 p-6">
-            <div class="mb-6">
-              <p class="text-[11px] tracking-[0.2em] text-ember">SIGN UP</p>
-              <h2 class="mt-2 text-3xl font-extrabold text-ink">Welcome to Samzic</h2>
-              <p class="mt-2 text-sm leading-relaxed text-ink/60">Fast checkout, saved delivery details and order tracking.</p>
-            </div>
-
-            {% if form.errors %}
-              <div role="alert" class="mb-6 rounded-2xl border border-ember/25 bg-ember/[0.07] px-5 py-4">
-                <div class="flex items-start gap-3">
-                  <svg class="mt-0.5 shrink-0 text-ember" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7.5v5M12 16h.01"/>
-                  </svg>
-                  <div class="text-sm">
-                    <p class="display font-bold text-ember-dark">We could not create the account yet</p>
-                    <ul class="mt-1.5 space-y-1 text-xs leading-relaxed text-ink/65">
-                      {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
-                      {% for field in form %}
-                        {% for error in field.errors %}<li><span class="text-ink/45">{{ field.label }}:</span> {{ error }}</li>{% endfor %}
-                      {% endfor %}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            {% endif %}
-
-            <div class="space-y-5">
-              {% include "partials/_field.html" with field=form.username %}
-              {% include "partials/_field.html" with field=form.email %}
-            </div>
-
-            <div class="mt-6 rounded-[20px] border border-ink/10 bg-white/90 p-5">
-              <div class="mb-5">
-                <p class="text-sm font-semibold text-ink">Password</p>
-                <p class="mt-1 text-xs text-ink/60">Keep it secure and easy to remember.</p>
-              </div>
-
-              <div class="space-y-5">
-                {% include "partials/_field.html" with field=form.password1 %}
-                {% include "partials/_field.html" with field=form.password2 %}
-              </div>
-
-              {% comment %}
-              The rules Django enforces server-side, written as a checklist that
-              ticks live. JS is a convenience only — validation is the form's.
-              {% endcomment %}
-              <ul id="pw-rules" class="mt-6 grid gap-2 text-[11px] text-ink/50" aria-live="polite">
-                <li data-rule="len" class="flex items-center gap-2">
-                  <span class="rule-dot grid h-4 w-4 shrink-0 place-items-center rounded-full border border-ink/20 text-transparent">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                  </span>
-                  At least 8 characters
-                </li>
-                <li data-rule="notnum" class="flex items-center gap-2">
-                  <span class="rule-dot grid h-4 w-4 shrink-0 place-items-center rounded-full border border-ink/20 text-transparent">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                  </span>
-                  Not made of numbers alone
-                </li>
-                <li data-rule="notname" class="flex items-center gap-2">
-                  <span class="rule-dot grid h-4 w-4 shrink-0 place-items-center rounded-full border border-ink/20 text-transparent">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                  </span>
-                  Different from your username and email
-                </li>
-                <li data-rule="common" class="flex items-center gap-2">
-                  <span class="rule-dot grid h-4 w-4 shrink-0 place-items-center rounded-full border border-ink/20 text-transparent">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                  </span>
-                  Not a commonly used password
-                </li>
+      {% if form.errors %}
+        <div role="alert" class="rounded-2xl border border-ember/25 bg-ember/[0.07] px-5 py-4">
+          <div class="flex items-start gap-3">
+            <svg class="mt-0.5 shrink-0 text-ember" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7.5v5M12 16h.01"/>
+            </svg>
+            <div class="text-sm">
+              <p class="display font-bold text-ember-dark">We could not create the account yet</p>
+              <ul class="mt-1.5 space-y-1 text-xs leading-relaxed text-ink/65">
+                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                {% for field in form %}
+                  {% for error in field.errors %}<li><span class="text-ink/45">{{ field.label }}:</span> {{ error }}</li>{% endfor %}
+                {% endfor %}
               </ul>
-
-              <label class="mt-5 flex cursor-pointer items-center gap-2 text-[11px] text-ink/45">
-                <input type="checkbox" id="pw-show" class="h-3.5 w-3.5 rounded border-ink/25 text-ember focus:ring-ember/30">
-                Show passwords
-              </label>
             </div>
           </div>
         </div>
+      {% endif %}
 
-        <div class="mt-6">
-          <button type="submit"
-                  class="w-full rounded-full bg-ember px-6 py-3.5 text-sm font-semibold text-bone transition hover:bg-ember-dark focus:outline-none focus:ring-2 focus:ring-ember/40 focus:ring-offset-2 focus:ring-offset-white">
-            Create my account
-          </button>
+      {% include "partials/_field.html" with field=form.full_name %}
+      {% include "partials/_field.html" with field=form.email %}
+      {% include "partials/_field.html" with field=form.phone_number %}
+      {% include "partials/_field.html" with field=form.username %}
 
-          <p class="mt-4 text-center text-[11px] leading-relaxed text-ink/40">
-            By creating an account you agree to our delivery terms.
-            We only use your details to get your food to you.
-          </p>
-
-          <p class="mt-6 border-t border-ink/10 pt-5 text-center text-sm text-ink/55">
-            Already have an account?
-            <a href="{% url 'accounts:login' %}" class="font-semibold text-ember underline-grow">Log in</a>
-          </p>
+      <div class="rounded-[20px] border border-ink/10 bg-white/90 p-5">
+        <div class="mb-5">
+          <p class="text-sm font-semibold text-ink">Password</p>
+          <p class="mt-1 text-xs text-ink/60">Keep it secure and easy to remember.</p>
         </div>
-      </form>
-    </div>
+        {% include "partials/_field.html" with field=form.password1 %}
+        {% include "partials/_field.html" with field=form.password2 %}
+
+        <ul id="pw-rules" class="mt-6 grid gap-2 text-[11px] text-ink/50" aria-live="polite">
+          <li data-rule="len" class="flex items-center gap-2">At least 8 characters</li>
+          <li data-rule="notnum" class="flex items-center gap-2">Not made of numbers alone</li>
+          <li data-rule="notname" class="flex items-center gap-2">Different from your username and email</li>
+          <li data-rule="common" class="flex items-center gap-2">Not a commonly used password</li>
+        </ul>
+
+        <label class="mt-5 flex cursor-pointer items-center gap-2 text-[11px] text-ink/45">
+          <input type="checkbox" id="pw-show" class="h-3.5 w-3.5 rounded border-ink/25 text-ember focus:ring-ember/30"> Show passwords
+        </label>
+      </div>
+
+      <button type="submit" class="w-full rounded-full bg-ember py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">Create account</button>
+
+      <p class="mt-4 text-center text-[11px] leading-relaxed text-ink/40">By creating an account you agree to our delivery terms. We only use your details to get your food to you.</p>
+      <p class="mt-6 text-center text-sm text-ink/55">Already have an account? <a href="{% url 'accounts:login' %}" class="text-ember underline-grow">Sign in</a></p>
+
+    </form>
   </div>
 </section>
 {% endblock %}

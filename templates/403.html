@@ -1,36 +1,54 @@
 {% extends "base.html" %}
 {% comment %}
-Extends base.html like 404.html does: a 403 means the request was understood
-and refused, so the session, nav and context processors are all still sound.
+This page shows for forbidden access when the user does not have permission.
 {% endcomment %}
 
-{% block title %}Not allowed — {{ SITE_NAME }}{% endblock %}
+{% block title %}Forbidden — {{ SITE_NAME }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.error-shell { min-height:72vh; padding:3rem 1.25rem 4rem; }
+.error-card { position:relative; overflow:hidden; border-radius:2rem; border:1px solid rgba(20,20,20,.08);
+  background:rgba(255,255,255,.96); box-shadow:0 36px 90px -50px rgba(20,20,20,.18); }
+.error-card::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 15% 26%, rgba(255,255,255,.4), transparent 24%),
+  radial-gradient(circle at 80% 64%, rgba(232,64,44,.1), transparent 28%); pointer-events:none; }
+.error-hero { position:relative; overflow:hidden; }
+.error-hero::after { content:''; position:absolute; inset:0; background:linear-gradient(130deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.24) 34%, rgba(255,255,255,0) 66%);
+  transform:translateX(-110%); animation:glide 4.4s ease-in-out infinite; }
+@keyframes glide { to { transform:translateX(120%); } }
+.error-code { position:relative; z-index:1; font-size:7rem; font-weight:800; line-height:0.88; letter-spacing:-0.05em;
+  background:linear-gradient(145deg, #C21807, #ffffff 40%, #C21807 70%); -webkit-background-clip:text; color:transparent; }
+.error-badge { display:inline-flex; border-radius:999px; border:1px solid rgba(194,24,7,.15);
+  background:rgba(194,24,7,.06); color:#C21807; padding:.65rem 1rem; font-size:.72rem; font-weight:700;
+  letter-spacing:.2em; text-transform:uppercase; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center px-5 text-center">
-  <p class="display text-[110px] font-extrabold leading-none text-ink/10">403</p>
-  <h1 class="display mt-4 text-3xl font-extrabold text-ink md:text-4xl">That door stays shut</h1>
-  <p class="mt-4 max-w-md text-sm leading-relaxed text-ink/55">
-    {% if user.is_authenticated %}
-      Your account doesn&rsquo;t have access to this page. If you think it should, let us know.
-    {% else %}
-      This page is for signed-in customers. Sign in and try again.
-    {% endif %}
-  </p>
-  <div class="mt-9 flex flex-wrap justify-center gap-3">
-    {% if not user.is_authenticated %}
-      <a href="{% url 'accounts:login' %}"
-         class="rounded-full bg-ember px-7 py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">
-        Sign in
-      </a>
-    {% endif %}
-    <a href="{% url 'menu:menu' %}"
-       class="rounded-full border border-ink/20 px-7 py-3.5 text-sm transition hover:border-ember hover:text-ember">
-      Browse the menu
-    </a>
+<div class="mx-auto error-shell max-w-6xl">
+  <div class="error-card">
+    <div class="grid gap-7 lg:grid-cols-[1fr_0.95fr] lg:items-center">
+      <div class="error-hero bg-ink/5 p-10 sm:p-14">
+        <p class="error-code">403</p>
+      </div>
+      <div class="p-8 sm:p-14">
+        <span class="error-badge">Permission denied</span>
+        <h1 class="mt-6 text-3xl font-extrabold text-ink sm:text-4xl">That door stays shut.</h1>
+        <p class="mt-4 max-w-xl text-sm leading-relaxed text-ink/70">
+          You don&rsquo;t have the rights to see this page. If you think this is a mistake, sign in with the right account or contact the kitchen team.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="{% url 'accounts:login' %}"
+             class="rounded-full bg-ember px-7 py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">
+            Sign in
+          </a>
+          <a href="{% url 'menu:menu' %}"
+             class="rounded-full border border-ink/20 px-7 py-3.5 text-sm transition hover:border-ember hover:text-ember">
+            Browse the menu
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
-  <p class="mt-8 text-sm text-ink/50">
-    Or call us on <a href="tel:{{ SITE_PHONE }}" class="font-semibold text-ember underline-grow">{{ SITE_PHONE }}</a>
-  </p>
 </div>
 {% endblock %}

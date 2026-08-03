@@ -135,8 +135,11 @@ and history all keep working exactly as Django ships them.
 {% endblock %}
 
 {% block branding %}
-<div id="site-name">
+<div id="site-name" style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
   <a href="{% url 'admin:index' %}">Samzic Foods Empire</a>
+  {% if user.is_staff %}
+    <a href="{% url 'admin_control_room' %}" style="color:#F4F2EF;opacity:.75;font-size:12px;">Control room</a>
+  {% endif %}
 </div>
 {% if user.is_authenticated %}
   <a href="/" style="color:#F4F2EF;opacity:.65;font-size:12px;margin-left:14px;">View site &rarr;</a>

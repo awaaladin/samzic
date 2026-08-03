@@ -79,6 +79,11 @@ DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1]
 If you are deploying to Vercel, the same `DATABASE_URL` value should be stored in
 Vercel's Environment Variables and the app will read it from there automatically.
 
+The database endpoint must be reachable from Vercel. If your host resolves only to
+IPv6 (for example, the error mentions a `2a05:...` address), the Vercel runtime may
+not be able to connect. In that case, use a provider or endpoint that supports
+IPv4 connectivity.
+
 To use PostgreSQL locally for a migration or data check, set:
 
 ```env

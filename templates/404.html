@@ -1,31 +1,54 @@
 {% extends "base.html" %}
 {% comment %}
-Extends base.html on purpose: a 404 only means the URL missed, so the nav,
-cart badge and context processors are all still trustworthy. 500.html cannot
-make that assumption and stays standalone.
+A missing page or mistyped URL. This keeps the storefront look even in 404s.
 {% endcomment %}
 
 {% block title %}Page not found — {{ SITE_NAME }}{% endblock %}
 
+{% block extra_head %}
+<style>
+.error-shell { min-height:72vh; padding:3rem 1.25rem 4rem; }
+.error-card { position:relative; overflow:hidden; border-radius:2rem; border:1px solid rgba(20,20,20,.08);
+  background:rgba(255,255,255,.96); box-shadow:0 36px 90px -50px rgba(20,20,20,.18); }
+.error-card::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 15% 26%, rgba(255,255,255,.4), transparent 24%),
+  radial-gradient(circle at 80% 64%, rgba(232,64,44,.1), transparent 28%); pointer-events:none; }
+.error-hero { position:relative; overflow:hidden; }
+.error-hero::after { content:''; position:absolute; inset:0; background:linear-gradient(130deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.24) 34%, rgba(255,255,255,0) 66%);
+  transform:translateX(-110%); animation:glide 4.4s ease-in-out infinite; }
+@keyframes glide { to { transform:translateX(120%); } }
+.error-code { position:relative; z-index:1; font-size:7rem; font-weight:800; line-height:0.88; letter-spacing:-0.05em;
+  background:linear-gradient(145deg, #C21807, #ffffff 40%, #C21807 70%); -webkit-background-clip:text; color:transparent; }
+.error-badge { display:inline-flex; border-radius:999px; border:1px solid rgba(194,24,7,.15);
+  background:rgba(194,24,7,.06); color:#C21807; padding:.65rem 1rem; font-size:.72rem; font-weight:700;
+  letter-spacing:.2em; text-transform:uppercase; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="mx-auto flex min-h-[70vh] max-w-2xl flex-col items-center justify-center px-5 text-center">
-  <p class="display text-[110px] font-extrabold leading-none text-ink/10">404</p>
-  <h1 class="display mt-4 text-3xl font-extrabold text-ink md:text-4xl">This plate isn&rsquo;t on the menu</h1>
-  <p class="mt-4 max-w-md text-sm leading-relaxed text-ink/55">
-    The page you&rsquo;re looking for has been moved, removed, or never existed.
-  </p>
-  <div class="mt-9 flex flex-wrap justify-center gap-3">
-    <a href="{% url 'menu:menu' %}"
-       class="rounded-full bg-ember px-7 py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">
-      Browse the menu
-    </a>
-    <a href="{% url 'menu:home' %}"
-       class="rounded-full border border-ink/20 px-7 py-3.5 text-sm transition hover:border-ember hover:text-ember">
-      Back to home
-    </a>
+<div class="mx-auto error-shell max-w-6xl">
+  <div class="error-card">
+    <div class="grid gap-7 lg:grid-cols-[1fr_0.95fr] lg:items-center">
+      <div class="error-hero bg-ink/5 p-10 sm:p-14">
+        <p class="error-code">404</p>
+      </div>
+      <div class="p-8 sm:p-14">
+        <span class="error-badge">Not found</span>
+        <h1 class="mt-6 text-3xl font-extrabold text-ink sm:text-4xl">This plate is missing.</h1>
+        <p class="mt-4 max-w-xl text-sm leading-relaxed text-ink/70">
+          The page you were looking for doesn&rsquo;t exist anymore. Try the menu, go back home, or search again from the header.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="{% url 'menu:menu' %}"
+             class="rounded-full bg-ember px-7 py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">
+            Browse the menu
+          </a>
+          <a href="{% url 'menu:home' %}"
+             class="rounded-full border border-ink/20 px-7 py-3.5 text-sm transition hover:border-ember hover:text-ember">
+            Back to home
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
-  <p class="mt-8 text-sm text-ink/50">
-    Or call us on <a href="tel:{{ SITE_PHONE }}" class="font-semibold text-ember underline-grow">{{ SITE_PHONE }}</a>
-  </p>
 </div>
 {% endblock %}

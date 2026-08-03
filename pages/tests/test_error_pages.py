@@ -64,6 +64,14 @@ class BrandedErrorPagesInDebugTests(TestCase):
         self.assertNotContains(response, "This plate", status_code=404)
 
     def test_admin_404_keeps_django_behaviour(self):
+        """The admin has its own error pages; storefront HTML there would be
+        jarring and would leak the customer nav into a staff tool."""
+        from django.contrib.auth.models import User
+
+        User.objects.create_superuser(
+            username="staff-only", email="s@samzic.com", password="pw-for-tests-only"
+        )
+        self.client.login(username="staff-only", password="pw-for-tests-only")
         response = self.client.get("/admin/no-such-admin-page/")
         self.assertNotContains(response, "This plate", status_code=404)
 

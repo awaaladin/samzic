@@ -117,3 +117,17 @@ class AdminSiteTests(TestCase):
             response = self.client.get(reverse("admin:index"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Food items")
+
+    def test_control_room_route_exists(self):
+        response = self.client.get(reverse("control_room"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Control room")
+        self.assertContains(response, "Open full Django admin")
+
+    def test_non_staff_cannot_reach_control_room(self):
+        self.client.logout()
+        User.objects.create_user(username="customer", password="pw-for-tests-only")
+        self.client.login(username="customer", password="pw-for-tests-only")
+        response = self.client.get(reverse("control_room"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("login", response["Location"])

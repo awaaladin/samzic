@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% comment %}
+A 402 is used for payment-required situations. While Django rarely raises it
+natively, this template ensures the site stays polished if a payment flow error
+or gateway redirect needs to inform the customer.
+{% endcomment %}
+
+{% block title %}Payment required — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="mx-auto min-h-[72vh] px-5 py-16 sm:px-6 lg:px-8">
+  <div class="overflow-hidden rounded-[2rem] border border-ink/10 bg-white shadow-[0_30px_80px_-50px_rgba(20,20,20,.18)]">
+    <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <div class="relative bg-ink/5 p-10 sm:p-14">
+        <p class="display text-[108px] font-extrabold leading-none text-ink/10">402</p>
+        <div class="absolute inset-x-0 bottom-0 h-24 bg-[radial-gradient(circle_at_top,_rgba(194,24,7,.16),transparent_55%)]"></div>
+      </div>
+      <div class="p-8 sm:p-14">
+        <span class="inline-flex rounded-full border border-ember/10 bg-ember/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-ember">Payment required</span>
+        <h1 class="mt-6 text-3xl font-extrabold text-ink sm:text-4xl">Payment didn&rsquo;t go through.</h1>
+        <p class="mt-4 max-w-xl text-sm leading-relaxed text-ink/70">
+          We weren’t able to complete your payment. Please check your card details and try again, or choose another payment method.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="{% url 'cart:detail' %}"
+             class="rounded-full bg-ember px-7 py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">
+            Review cart
+          </a>
+          <a href="{% url 'menu:menu' %}"
+             class="rounded-full border border-ink/20 px-7 py-3.5 text-sm transition hover:border-ember hover:text-ember">
+            Choose something else
+          </a>
+        </div>
+        <p class="mt-8 text-sm text-ink/50">
+          Need help? Call us at <a href="tel:{{ SITE_PHONE }}" class="font-semibold text-ember underline-grow">{{ SITE_PHONE }}</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

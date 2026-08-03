@@ -4,6 +4,8 @@ Django only routes to these when DEBUG=False. To preview them locally, see the
 "Previewing error pages" note in README.md.
 """
 
+from django.contrib import admin
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 
 
@@ -27,6 +29,17 @@ def csrf_failure(request, reason=""):  # noqa: ARG001 - signature fixed by Djang
     than implying wrongdoing. Wired via CSRF_FAILURE_VIEW in settings.
     """
     return render(request, "403_csrf.html", status=403)
+
+
+@staff_member_required
+def control_room(request):
+    context = admin.site.each_context(request)
+    try:
+        context["dashboard"] = admin.site.dashboard_stats()
+    except Exception:
+        context["dashboard"] = None
+    context["title"] = "Control room"
+    return render(request, "admin/control_room.html", context)
 
 
 def server_error(request):

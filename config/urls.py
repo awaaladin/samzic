@@ -7,11 +7,17 @@ from django.urls import include, path
 from django.views.generic.base import RedirectView
 from django.templatetags.static import static as static_url
 
+from . import views
+
 # Titles now live on SamzicAdminSite in config/admin.py, so they apply to the
 # login page too rather than only after the site module is imported.
 
 urlpatterns = [
+    path("admin/control-room/", views.control_room, name="admin_control_room"),
     path("admin/", admin.site.urls),
+    path("control-room/", views.control_room, name="control_room"),
+    path("account/", RedirectView.as_view(pattern_name="accounts:profile", permanent=False), name="account_dashboard"),
+    path("dashboard/", RedirectView.as_view(pattern_name="accounts:profile", permanent=False), name="dashboard"),
     # Browsers request /favicon.ico from the domain root regardless of the
     # <link> tags, so point that at the real file instead of serving a 404.
     path(

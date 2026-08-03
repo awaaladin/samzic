@@ -7,6 +7,8 @@ DATABASE_URL. See the Database section below and .env.example.
 
 from pathlib import Path
 import secrets
+import socket
+from urllib.parse import urlparse
 
 import environ
 from django.core.exceptions import ImproperlyConfigured
@@ -156,6 +158,32 @@ if USE_POSTGRES:
             "DATABASE_URL must be set when running on Vercel. Add it under "
             "Project Settings > Environment Variables."
         )
+
+    if ON_VERCEL:
+        parsed = urlparse(database_url)
+        db_host = parsed.hostname
+        if db_host:
+            has_ipv4 = False
+            has_ipv6 = False
+            try:
+                socket.getaddrinfo(db_host, None, socket.AF_INET, socket.SOCK_STREAM)
+                has_ipv4 = True
+            except OSError:
+                pass
+            try:
+                socket.getaddrinfo(db_host, None, socket.AF_INET6, socket.SOCK_STREAM)
+                has_ipv6 = True
+            except OSError:
+                pass
+
+            if has_ipv6 and not has_ipv4:
+                raise ImproperlyConfigured(
+                    "PostgreSQL host resolves only to IPv6. Vercel serverless "
+                    "functions may not be able to open an IPv6 connection. "
+                    "Use a database endpoint reachable via IPv4 or a different "
+                    "PostgreSQL provider."
+                )
+
     DATABASES = {"default": env.db_url_config(database_url)}
     _db = DATABASES["default"]
 

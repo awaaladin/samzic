@@ -36,6 +36,9 @@ class TailwindFormMixin:
 class SignUpForm(TailwindFormMixin, UserCreationForm):
     """Username + email + password, with email uniqueness enforced."""
 
+    # Collect delivery name and phone during signup so checkout is one-tap.
+    full_name = forms.CharField(required=False, label="Full name")
+    phone_number = forms.CharField(required=False, label="Phone number")
     email = forms.EmailField(
         required=True,
         label="Email address",
@@ -62,8 +65,10 @@ class SignUpForm(TailwindFormMixin, UserCreationForm):
         self.fields["password2"].label = "Confirm password"
 
         placeholders = {
+            "full_name": "Your full name",
             "username": "e.g. tundeeats",
             "email": "you@example.com",
+            "phone_number": "e.g. +234 803 000 0000",
             "password1": "At least 8 characters",
             "password2": "Type it once more",
         }
@@ -76,7 +81,10 @@ class SignUpForm(TailwindFormMixin, UserCreationForm):
         self.fields["password2"].widget.attrs["autocomplete"] = "new-password"
         self.fields["username"].widget.attrs["autocomplete"] = "username"
         self.fields["email"].widget.attrs["autocomplete"] = "email"
-        self.fields["username"].widget.attrs["autofocus"] = True
+        self.fields["full_name"].widget.attrs["autocomplete"] = "name"
+        self.fields["phone_number"].widget.attrs["autocomplete"] = "tel"
+        # Focus the first logical field on the form (full name).
+        self.fields["full_name"].widget.attrs["autofocus"] = True
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
@@ -86,11 +94,35 @@ class SignUpForm(TailwindFormMixin, UserCreationForm):
             raise forms.ValidationError("An account with this email already exists.")
         return email
 
+    def clean_phone_number(self):
+        phone = self.cleaned_data.get("phone_number", "").strip()
+        if phone:
+            digits = phone.lstrip("+").replace(" ", "").replace("-", "")
+            if not digits.isdigit():
+                raise forms.ValidationError(
+                    "Enter a valid phone number using digits, spaces and an optional +."
+                )
+            if len(digits) < 10:
+                raise forms.ValidationError("That phone number looks too short.")
+        return phone
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data["email"]
         if commit:
             user.save()
+            # The Profile is created by the post_save signal. Populate it
+            # with any delivery details supplied during signup.
+            try:
+                profile = user.profile
+                profile.full_name = self.cleaned_data.get("full_name", "")
+                profile.phone_number = self.cleaned_data.get("phone_number", "")
+                profile.save()
+            except Exception:
+                # If the profile does not exist for some reason, ignore — the
+                # post_save signal should have created one; this must not
+                # prevent account creation.
+                pass
         return user
 
 
@@ -100,8 +132,10 @@ class LoginForm(TailwindFormMixin, AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["username"].widget.attrs.update(
-            {"placeholder": "Your username", "autocomplete": "username", "autofocus": True}
+            {"placeholder": "you@example.com or username", "autocomplete": "username", "autofocus": True}
         )
+        # Make the label clearer for customers who signin with their email.
+        self.fields["username"].label = "Email or username"
         self.fields["password"].widget.attrs.update(
             {"placeholder": "Your password", "autocomplete": "current-password"}
         )
