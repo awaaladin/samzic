@@ -6,7 +6,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.models import Profile
-from cart.cart import Cart
+from cart.models import get_cart
 
 from .forms import CheckoutForm
 from .models import Order, OrderItem
@@ -17,7 +17,7 @@ from .services import get_order_totals
 @login_required
 def checkout(request):
     """Review the order, confirm delivery details, and place it."""
-    cart = Cart(request)
+    cart = get_cart(request)
     if not cart:
         messages.warning(request, "Your cart is empty — add something tasty first.")
         return redirect("menu:menu")

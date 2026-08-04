@@ -15,12 +15,14 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 
 from menu.models import FoodItem
 from orders.services import get_order_totals
 
-from .cart import MAX_QUANTITY_PER_ITEM, Cart
+from .cart import MAX_QUANTITY_PER_ITEM
 from .forms import AddToCartForm
+from .models import get_cart
 
 
 def _wants_json(request):
@@ -85,7 +87,7 @@ def _error(request, message, redirect_to="cart:detail"):
 
 def cart_detail(request):
     """The cart page: line items, totals and the link to checkout."""
-    cart = Cart(request)
+    cart = get_cart(request)
     return render(
         request,
         "cart/detail.html",
@@ -102,7 +104,7 @@ def cart_detail(request):
 @require_POST
 def cart_add(request, item_id):
     """Add (or set) a quantity for one dish."""
-    cart = Cart(request)
+    cart = get_cart(request)
     item = get_object_or_404(FoodItem.objects.select_related("category"), id=item_id)
 
     if not item.available or not item.category.is_active:
@@ -129,7 +131,7 @@ def cart_add(request, item_id):
 @require_POST
 def cart_update(request, item_id):
     """Set an exact quantity from the cart page."""
-    cart = Cart(request)
+    cart = get_cart(request)
     item = get_object_or_404(FoodItem, id=item_id)
 
     form = AddToCartForm(request.POST)
@@ -148,7 +150,7 @@ def cart_update(request, item_id):
 
 @require_POST
 def cart_remove(request, item_id):
-    cart = Cart(request)
+    cart = get_cart(request)
     item = get_object_or_404(FoodItem, id=item_id)
     cart.remove(item)
     message = f"{item.name} removed from your cart."
@@ -164,7 +166,7 @@ def cart_remove(request, item_id):
 
 @require_POST
 def cart_clear(request):
-    cart = Cart(request)
+    cart = get_cart(request)
     cart.clear()
     message = "Your cart is now empty."
 
@@ -173,3 +175,4 @@ def cart_clear(request):
 
     messages.info(request, message)
     return redirect("cart:detail")
+
