@@ -8,6 +8,7 @@ DATABASE_URL. See the Database section below and .env.example.
 from pathlib import Path
 import secrets
 import socket
+import sys
 from urllib.parse import urlparse
 
 import environ
@@ -149,7 +150,14 @@ WSGI_APPLICATION = "config.wsgi.application"
 #
 # To exercise Postgres locally (a migration, a data check), set USE_POSTGRES=True
 # in .env for the length of that task. Requires psycopg — see requirements.txt.
-USE_POSTGRES = ON_VERCEL or env.bool("USE_POSTGRES", default=False)
+#
+# collectstatic is exempt. It runs during Vercel's build step, which touches no
+# tables, but importing this module used to require DATABASE_URL and resolve the
+# database host over DNS — so a database that was merely unreachable from the
+# build container failed the whole deployment before a single file was copied.
+_COLLECTSTATIC_BUILD = "collectstatic" in sys.argv
+
+USE_POSTGRES = (ON_VERCEL or env.bool("USE_POSTGRES", default=False)) and not _COLLECTSTATIC_BUILD
 
 if USE_POSTGRES:
     database_url = env("DATABASE_URL", default="")
