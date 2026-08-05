@@ -139,6 +139,7 @@ and history all keep working exactly as Django ships them.
   <a href="{% url 'admin:index' %}">Samzic Foods Empire</a>
   {% if user.is_staff %}
     <a href="{% url 'admin_control_room' %}" style="color:#F4F2EF;opacity:.75;font-size:12px;">Control room</a>
+    <a href="{% url 'admin_change_history' %}" style="color:#F4F2EF;opacity:.75;font-size:12px;">Change history</a>
   {% endif %}
 </div>
 {% if user.is_authenticated %}

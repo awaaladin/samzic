@@ -1,0 +1,20 @@
+{
+  "name": "restura",
+  "version": "1.0.0",
+  "description": "A modern Django restaurant ordering application for quick food delivery, menu browsing, and order tracking. The project uses Django templates, Tailwind CSS, session-based cart storage, and is configured for SQLite locally with easy PostgreSQL deployment.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/awaaladin/samzic.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/awaaladin/samzic/issues"
+  },
+  "homepage": "https://github.com/awaaladin/samzic#readme"
+}

@@ -5,27 +5,27 @@
 {% block meta_description %}Create a Samzic Food Empire account for faster checkout and saved delivery details.{% endblock %}
 
 {% block content %}
-<section class="mx-auto grid max-w-7xl gap-12 px-5 py-14 lg:grid-cols-2 lg:px-8">
+<section class="mx-auto grid max-w-7xl items-stretch gap-8 px-5 py-8 lg:grid-cols-2 lg:px-8">
   <div class="order-2 hidden overflow-hidden rounded-[28px] bg-ink lg:order-1 lg:block">
-    <img src="{% static 'img/hero.jpg' %}" alt="Samzic food" class="h-[560px] w-full object-cover opacity-70" />
+    <img src="{% static 'img/hero.jpg' %}" alt="Samzic food" class="h-full min-h-[520px] w-full object-cover opacity-70" />
   </div>
-  <div class="order-1 lg:order-2 lg:py-10">
+  <div class="order-1 lg:order-2">
     <p class="text-[11px] tracking-[0.2em] text-ember">SAMZIC ACCOUNT</p>
-    <h1 class="display mt-3 text-4xl font-extrabold md:text-5xl">Create your account</h1>
-    <p class="mt-3 max-w-sm text-sm text-ink/55">Save addresses, reorder in one tap and get first access to seasonal menus.</p>
+    <h1 class="display mt-2 text-3xl font-extrabold md:text-4xl">Create your account</h1>
+    <p class="mt-2 text-sm text-ink/55">Save addresses, reorder in one tap and get first access to seasonal menus.</p>
 
-    <form method="post" novalidate id="signup-form" class="mt-8 max-w-sm space-y-4">
+    <form method="post" novalidate id="signup-form" class="mt-5 space-y-4">
       {% csrf_token %}
 
       {% if form.errors %}
-        <div role="alert" class="rounded-2xl border border-ember/25 bg-ember/[0.07] px-5 py-4">
+        <div role="alert" class="rounded-2xl border border-ember/25 bg-ember/[0.07] px-4 py-3">
           <div class="flex items-start gap-3">
             <svg class="mt-0.5 shrink-0 text-ember" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
               <circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7.5v5M12 16h.01"/>
             </svg>
             <div class="text-sm">
               <p class="display font-bold text-ember-dark">We could not create the account yet</p>
-              <ul class="mt-1.5 space-y-1 text-xs leading-relaxed text-ink/65">
+              <ul class="mt-1 space-y-0.5 text-xs leading-relaxed text-ink/65">
                 {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
                 {% for field in form %}
                   {% for error in field.errors %}<li><span class="text-ink/45">{{ field.label }}:</span> {{ error }}</li>{% endfor %}
@@ -36,35 +36,43 @@
         </div>
       {% endif %}
 
-      {% include "partials/_field.html" with field=form.full_name %}
-      {% include "partials/_field.html" with field=form.email %}
-      {% include "partials/_field.html" with field=form.phone_number %}
-      {% include "partials/_field.html" with field=form.username %}
+      {% comment %}
+      Two columns from sm up: six fields would otherwise push the button
+      below the fold on a laptop. Single column on phones, where the viewport
+      scrolls anyway and side-by-side inputs get cramped.
+      {% endcomment %}
+      <div class="grid gap-3 sm:grid-cols-2">
+        {% include "partials/_field.html" with field=form.full_name %}
+        {% include "partials/_field.html" with field=form.phone_number %}
+        {% include "partials/_field.html" with field=form.email %}
+        {% include "partials/_field.html" with field=form.username %}
+      </div>
 
-      <div class="rounded-[20px] border border-ink/10 bg-white/90 p-5">
-        <div class="mb-5">
-          <p class="text-sm font-semibold text-ink">Password</p>
-          <p class="mt-1 text-xs text-ink/60">Keep it secure and easy to remember.</p>
+      <div class="rounded-[20px] border border-ink/10 bg-white/90 p-4">
+        <div class="grid gap-3 sm:grid-cols-2">
+          {% include "partials/_field.html" with field=form.password1 %}
+          {% include "partials/_field.html" with field=form.password2 %}
         </div>
-        {% include "partials/_field.html" with field=form.password1 %}
-        {% include "partials/_field.html" with field=form.password2 %}
 
-        <ul id="pw-rules" class="mt-6 grid gap-2 text-[11px] text-ink/50" aria-live="polite">
-          <li data-rule="len" class="flex items-center gap-2">At least 8 characters</li>
-          <li data-rule="notnum" class="flex items-center gap-2">Not made of numbers alone</li>
-          <li data-rule="notname" class="flex items-center gap-2">Different from your username and email</li>
-          <li data-rule="common" class="flex items-center gap-2">Not a commonly used password</li>
+        {% comment %}Chips rather than a stacked list: same four rules, one or two rows.{% endcomment %}
+        <ul id="pw-rules" class="mt-3 flex flex-wrap gap-x-3 gap-y-1.5 text-[11px] text-ink/50" aria-live="polite">
+          <li data-rule="len" class="flex items-center gap-1.5"><span class="rule-dot inline-block h-3 w-3 shrink-0 rounded-full border border-ink/20"></span>8+ characters</li>
+          <li data-rule="notnum" class="flex items-center gap-1.5"><span class="rule-dot inline-block h-3 w-3 shrink-0 rounded-full border border-ink/20"></span>Not numbers alone</li>
+          <li data-rule="notname" class="flex items-center gap-1.5"><span class="rule-dot inline-block h-3 w-3 shrink-0 rounded-full border border-ink/20"></span>Unlike your username or email</li>
+          <li data-rule="common" class="flex items-center gap-1.5"><span class="rule-dot inline-block h-3 w-3 shrink-0 rounded-full border border-ink/20"></span>Not commonly used</li>
         </ul>
 
-        <label class="mt-5 flex cursor-pointer items-center gap-2 text-[11px] text-ink/45">
+        <label class="mt-3 flex cursor-pointer items-center gap-2 text-[11px] text-ink/45">
           <input type="checkbox" id="pw-show" class="h-3.5 w-3.5 rounded border-ink/25 text-ember focus:ring-ember/30"> Show passwords
         </label>
       </div>
 
-      <button type="submit" class="w-full rounded-full bg-ember py-3.5 text-sm font-medium text-bone transition hover:bg-ember-dark">Create account</button>
+      <button type="submit" class="w-full rounded-full bg-ember py-3 text-sm font-medium text-bone transition hover:bg-ember-dark">Create account</button>
 
-      <p class="mt-4 text-center text-[11px] leading-relaxed text-ink/40">By creating an account you agree to our delivery terms. We only use your details to get your food to you.</p>
-      <p class="mt-6 text-center text-sm text-ink/55">Already have an account? <a href="{% url 'accounts:login' %}" class="text-ember underline-grow">Sign in</a></p>
+      <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-ink/40">
+        <p>We only use your details to get your food to you.</p>
+        <p class="text-sm text-ink/55">Have an account? <a href="{% url 'accounts:login' %}" class="text-ember underline-grow">Sign in</a></p>
+      </div>
 
     </form>
   </div>
@@ -84,6 +92,7 @@
     const username = form.querySelector('#id_username');
     const email = form.querySelector('#id_email');
     const rules = document.getElementById('pw-rules');
+    if (!pw || !rules) return;
 
     // A short list, not django-common-passwords — just enough to catch the
     // obvious ones before a round trip.
@@ -94,6 +103,7 @@
       const li = rules.querySelector(`[data-rule="${name}"]`);
       if (!li) return;
       const dot = li.querySelector('.rule-dot');
+      if (!dot) return;
       li.classList.toggle('text-ink/50', !ok);
       li.classList.toggle('text-emerald-700', ok);
       dot.classList.toggle('border-ink/20', !ok);
@@ -105,8 +115,8 @@
 
     function check() {
       const value = pw.value;
-      const name = (username.value || '').trim().toLowerCase();
-      const mail = (email.value || '').split('@')[0].trim().toLowerCase();
+      const name = ((username && username.value) || '').trim().toLowerCase();
+      const mail = ((email && email.value) || '').split('@')[0].trim().toLowerCase();
       const lower = value.toLowerCase();
 
       mark('len', value.length >= 8);
@@ -120,11 +130,14 @@
     [pw, username, email].forEach(el => el && el.addEventListener('input', check));
     if (pw.value) check();
 
-    document.getElementById('pw-show').addEventListener('change', function () {
-      const type = this.checked ? 'text' : 'password';
-      pw.type = type;
-      pw2.type = type;
-    });
+    const show = document.getElementById('pw-show');
+    if (show) {
+      show.addEventListener('change', function () {
+        const type = this.checked ? 'text' : 'password';
+        pw.type = type;
+        if (pw2) pw2.type = type;
+      });
+    }
   })();
 </script>
 {% endblock %}

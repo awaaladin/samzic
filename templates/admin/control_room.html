@@ -16,6 +16,7 @@ while keeping the default admin fully intact.
       <p style="margin:.75rem 0 0;color:#4A4A4A;max-width:55ch;">A quick staff dashboard for orders, payments, menu coverage, and support enquiries. Use the full Django admin for detailed model editing and history.</p>
     </div>
     <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+      <a href="{% url 'admin_change_history' %}" class="button" style="background:#F4F2EF;color:#141414;padding:0.9rem 1.25rem;border-radius:999px;text-decoration:none;border:1px solid rgba(20,20,20,.15);">Change history</a>
       <a href="{% url 'admin:index' %}" class="button" style="background:#C21807;color:#F4F2EF;padding:0.9rem 1.25rem;border-radius:999px;text-decoration:none;">Open full Django admin</a>
       <a href="/" class="button" style="background:#141414;color:#F4F2EF;padding:0.9rem 1.25rem;border-radius:999px;text-decoration:none;">View storefront</a>
     </div>

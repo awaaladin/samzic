@@ -1,0 +1,112 @@
+{% extends "admin/base_site.html" %}
+{% comment %}
+Site-wide admin audit trail, ported from savory-serve's admin/history.html.
+
+Reads django.contrib.admin's LogEntry, which is written automatically whenever
+staff add, change or delete through the admin — so this needs no new model and
+backfills itself from the moment the admin has been used.
+{% endcomment %}
+
+{% block title %}Change history | Samzic Foods Empire{% endblock %}
+
+{% block content %}
+<div class="module" style="background:#fff;border:1px solid rgba(20,20,20,.1);padding:26px 28px;margin-bottom:22px;border-radius:12px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+    <div>
+      <p style="margin:0 0 .5rem;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:#8A8A8A;">Audit trail</p>
+      <h1 style="margin:0;font-size:2rem;font-family:'Bricolage Grotesque',sans-serif;">Change history</h1>
+      <p style="margin:.75rem 0 0;color:#4A4A4A;max-width:60ch;">
+        Every add, change and delete made through the admin, newest first.
+        {{ total }} record{{ total|pluralize }} match{{ total|pluralize:"es," }} the current filter.
+      </p>
+    </div>
+    <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+      <a href="{% url 'admin_control_room' %}" class="button" style="background:#141414;color:#F4F2EF;padding:.9rem 1.25rem;border-radius:999px;text-decoration:none;">Control room</a>
+      <a href="{% url 'admin:index' %}" class="button" style="background:#C21807;color:#F4F2EF;padding:.9rem 1.25rem;border-radius:999px;text-decoration:none;">Full Django admin</a>
+    </div>
+  </div>
+
+  <form method="get" style="margin-top:22px;display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;">
+    <input type="search" name="q" value="{{ query }}" placeholder="Search by staff, model or record"
+           style="flex:1 1 260px;min-width:0;padding:.7rem 1rem;border:1px solid rgba(20,20,20,.15);border-radius:999px;font-size:.95rem;" />
+    <select name="action" style="padding:.7rem 1rem;border:1px solid rgba(20,20,20,.15);border-radius:999px;font-size:.95rem;">
+      <option value="">All actions</option>
+      <option value="1" {% if action == "1" %}selected{% endif %}>Added</option>
+      <option value="2" {% if action == "2" %}selected{% endif %}>Changed</option>
+      <option value="3" {% if action == "3" %}selected{% endif %}>Deleted</option>
+    </select>
+    <button type="submit" class="button" style="background:#141414;color:#F4F2EF;padding:.7rem 1.4rem;border-radius:999px;border:0;cursor:pointer;">Filter</button>
+    {% if query or action %}
+      <a href="{% url 'admin_change_history' %}" style="color:#8A8A8A;font-size:.9rem;text-decoration:none;">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="module" style="background:#fff;border:1px solid rgba(20,20,20,.1);padding:22px;border-radius:12px;">
+  {% if page_obj.object_list %}
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:12px 14px;font-size:.8rem;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;">When</th>
+          <th style="text-align:left;padding:12px 14px;font-size:.8rem;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;">Staff</th>
+          <th style="text-align:left;padding:12px 14px;font-size:.8rem;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;">Action</th>
+          <th style="text-align:left;padding:12px 14px;font-size:.8rem;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;">Model</th>
+          <th style="text-align:left;padding:12px 14px;font-size:.8rem;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;">Record</th>
+          <th style="text-align:left;padding:12px 14px;font-size:.8rem;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;">Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in page_obj %}
+          <tr style="border-top:1px solid rgba(20,20,20,.08);">
+            <td style="padding:12px 14px;font-size:.9rem;color:#6B6B6B;white-space:nowrap;">{{ entry.action_time|date:"j M Y, H:i" }}</td>
+            <td style="padding:12px 14px;font-size:.95rem;color:#141414;">{{ entry.user.get_username|default:"—" }}</td>
+            <td style="padding:12px 14px;font-size:.95rem;">
+              {% if entry.is_addition %}
+                <span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:700;text-transform:uppercase;background:#DCFCE7;color:#065F46;">Added</span>
+              {% elif entry.is_change %}
+                <span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:700;text-transform:uppercase;background:#DBEAFE;color:#1E40AF;">Changed</span>
+              {% else %}
+                <span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:700;text-transform:uppercase;background:#FEE2E2;color:#9C1205;">Deleted</span>
+              {% endif %}
+            </td>
+            <td style="padding:12px 14px;font-size:.95rem;color:#141414;">{{ entry.content_type.name|default:"—"|capfirst }}</td>
+            <td style="padding:12px 14px;font-size:.95rem;color:#141414;">
+              {% comment %}A deleted row has nothing left to link to.{% endcomment %}
+              {% if entry.is_deletion %}
+                <span style="color:#8A8A8A;text-decoration:line-through;">{{ entry.object_repr }}</span>
+              {% else %}
+                <a href="{{ entry.get_admin_url }}" style="color:#C21807;text-decoration:none;font-weight:600;">{{ entry.object_repr }}</a>
+              {% endif %}
+            </td>
+            <td style="padding:12px 14px;font-size:.9rem;color:#6B6B6B;">{{ entry.get_change_message|default:"—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if page_obj.has_other_pages %}
+      <div style="margin-top:18px;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+        <p style="margin:0;font-size:.9rem;color:#6B6B6B;">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
+        <div style="display:flex;gap:.5rem;">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if action %}&action={{ action }}{% endif %}"
+               style="padding:.55rem 1.1rem;border:1px solid rgba(20,20,20,.15);border-radius:999px;color:#141414;text-decoration:none;font-size:.9rem;">Previous</a>
+          {% endif %}
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if action %}&action={{ action }}{% endif %}"
+               style="padding:.55rem 1.1rem;border:1px solid rgba(20,20,20,.15);border-radius:999px;color:#141414;text-decoration:none;font-size:.9rem;">Next</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  {% else %}
+    <p style="margin:0;padding:28px;text-align:center;color:#6B6B6B;font-size:.95rem;">
+      {% if query or action %}
+        No changes match that search.
+      {% else %}
+        Nothing has been changed through the admin yet. Edits will show up here as staff make them.
+      {% endif %}
+    </p>
+  {% endif %}
+</div>
+{% endblock %}

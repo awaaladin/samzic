@@ -14,6 +14,10 @@ db.sqlite3-journal
 # Environment
 .env
 
+# Reference checkouts consulted while porting designs across (savory-serve).
+# Read-only source material, not part of this project's build.
+external/
+
 # Editors / OS
 .idea/
 .vscode/

@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.text import slugify
 
@@ -51,6 +52,16 @@ class FoodItemQuerySet(models.QuerySet):
 
 
 class FoodItem(models.Model):
+    # Stock photos for dishes with no upload yet, matched against the category
+    # name. First match wins, so keep the more specific keywords earlier.
+    FALLBACK_IMAGES = (
+        (("rice",), "jollof.jpg"),
+        (("soup", "swallow"), "egusi.jpg"),
+        (("grill",), "suya.jpg"),
+        (("chop", "side", "snack"), "smallchops.jpg"),
+        (("drink", "beverage"), "peppersoup.jpg"),
+    )
+
     name = models.CharField(max_length=140)
     slug = models.SlugField(max_length=160, unique=True, blank=True)
     description = models.TextField(blank=True)
@@ -85,6 +96,25 @@ class FoodItem(models.Model):
             models.Index(fields=["available", "category"]),
             models.Index(fields=["slug"]),
         ]
+
+    @property
+    def image_url(self):
+        """The uploaded image, or a category-appropriate stock photo.
+
+        Uploads go to Cloudinary in production (see settings.STORAGES), so
+        self.image.url is already an absolute CDN URL there and a /media/ path
+        locally. The fallbacks go through staticfiles rather than a hardcoded
+        "/static/..." string so they keep resolving if STATIC_URL ever moves to
+        a CDN prefix.
+        """
+        if self.image:
+            return self.image.url
+
+        cat = (self.category.name if self.category else "").lower()
+        for keywords, filename in self.FALLBACK_IMAGES:
+            if any(word in cat for word in keywords):
+                return static(f"img/{filename}")
+        return static("img/hero.jpg")
 
     def __str__(self):
         return self.name

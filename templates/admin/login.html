@@ -1,0 +1,226 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% comment %}
+The branded staff sign-in, ported from savory-serve's public/admin/login.html.
+
+Django's stock admin login is what people meant by "it sends me to the Django
+panel": the control room is branded, but the gate in front of it was not. This
+replaces the skin only — the form is still Django's AdminAuthenticationForm, so
+the staff check, rate limiting, "next" handling and CSRF all behave as shipped.
+
+Every block below overrides admin/base.html rather than adding to it, because
+the login page wants a full-bleed two-column layout instead of the admin chrome.
+{% endcomment %}
+
+{% block bodyclass %}{{ block.super }} login{% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  /* admin/base.html wraps everything in #container/#content; the login page
+     needs the full viewport, so those wrappers are neutralised here. */
+  body.login { background: #141414; color: #F4F2EF; }
+  body.login #container,
+  body.login #content,
+  body.login #content-start,
+  body.login #main { display: block; margin: 0; padding: 0; width: auto; max-width: none; background: transparent; }
+  body.login #header, body.login #nav-sidebar, body.login .breadcrumbs { display: none; }
+
+  .sz-grid { display: grid; min-height: 100vh; }
+  @media (min-width: 1024px) { .sz-grid { grid-template-columns: 1fr 1fr; } }
+
+  .sz-art { position: relative; overflow: hidden; display: none; }
+  @media (min-width: 1024px) { .sz-art { display: block; } }
+  .sz-art img { height: 100%; width: 100%; object-fit: cover; opacity: .45; }
+  .sz-art-shade { position: absolute; inset: 0; background: linear-gradient(to top, #141414, rgba(20,20,20,.5), transparent); }
+  .sz-art-glow {
+    pointer-events: none; position: absolute; left: -8rem; top: 33%;
+    height: 32rem; width: 32rem; border-radius: 999px;
+    background: rgba(194,24,7,.2); filter: blur(120px);
+    animation: sz-drift 24s ease-in-out infinite alternate;
+  }
+  @keyframes sz-drift {
+    from { transform: translate3d(-3%, 2%, 0) scale(1); }
+    to   { transform: translate3d(5%, -3%, 0) scale(1.1); }
+  }
+  .sz-art-copy { position: absolute; bottom: 3rem; left: 3rem; right: 3rem; }
+  .sz-eyebrow { font-size: 11px; letter-spacing: .26em; color: #C21807; margin: 0; }
+  .sz-art-copy h2 {
+    font-family: 'Bricolage Grotesque', Inter, sans-serif; letter-spacing: -.02em;
+    margin: 1rem 0 0; font-size: 2.25rem; font-weight: 800; line-height: 1.15; color: #F4F2EF;
+  }
+  .sz-art-copy h2 span { color: #C21807; }
+  .sz-art-copy p { margin: 1.25rem 0 0; max-width: 28rem; font-size: 14px; color: rgba(244,242,239,.5); }
+
+  .sz-pane { display: flex; align-items: center; justify-content: center; padding: 4rem 1.5rem; }
+  .sz-form-wrap { width: 100%; max-width: 24rem; }
+
+  .sz-brand { display: flex; align-items: center; gap: .75rem; text-decoration: none; }
+  .sz-brand-mark {
+    display: grid; place-items: center; height: 2.25rem; width: 2.25rem; border-radius: 999px;
+    background: #F4F2EF; color: #141414;
+    font-family: 'Bricolage Grotesque', Inter, sans-serif; font-size: 15px; font-weight: 800;
+  }
+  .sz-brand-name {
+    font-family: 'Bricolage Grotesque', Inter, sans-serif; letter-spacing: -.02em;
+    font-size: 1.125rem; font-weight: 800; line-height: 1; color: #F4F2EF;
+  }
+  .sz-brand-name em { color: #C21807; font-style: normal; }
+  .sz-brand-name small {
+    display: block; font-size: 10px; font-weight: 500;
+    letter-spacing: .22em; color: rgba(244,242,239,.45);
+  }
+
+  .sz-form-wrap h1 {
+    font-family: 'Bricolage Grotesque', Inter, sans-serif; letter-spacing: -.02em;
+    margin: 3rem 0 0; font-size: 1.875rem; font-weight: 800; color: #F4F2EF;
+  }
+  .sz-lede { margin: .5rem 0 0; font-size: 14px; color: rgba(244,242,239,.5); }
+
+  .sz-form { margin-top: 2.25rem; }
+  .sz-field { display: block; font-size: 12px; color: rgba(244,242,239,.45); margin-bottom: 1rem; }
+  .sz-field > input,
+  .sz-field .sz-input-wrap > input {
+    margin-top: .375rem; width: 100%; box-sizing: border-box;
+    border-radius: .75rem; border: 1px solid rgba(244,242,239,.15);
+    background: rgba(255,255,255,.04); padding: .75rem 1rem;
+    font-size: 14px; color: #F4F2EF;
+  }
+  .sz-field .sz-input-wrap { position: relative; margin-top: .375rem; }
+  .sz-field .sz-input-wrap > input { margin-top: 0; padding-right: 4rem; }
+  .sz-field input:focus { outline: none; border-color: #C21807; }
+  .sz-field input:-webkit-autofill {
+    -webkit-text-fill-color: #F4F2EF;
+    -webkit-box-shadow: 0 0 0 1000px #1D1D1D inset;
+  }
+
+  .sz-toggle {
+    position: absolute; right: .75rem; top: 50%; transform: translateY(-50%);
+    background: none; border: 0; cursor: pointer; padding: 0;
+    font-size: 11px; color: rgba(244,242,239,.45);
+  }
+  .sz-toggle:hover { color: #C21807; }
+
+  .sz-submit {
+    width: 100%; margin-top: .5rem; cursor: pointer;
+    border: 0; border-radius: 999px; background: #C21807;
+    padding: .875rem; font-size: 14px; font-weight: 500; color: #F4F2EF;
+    transition: background .25s ease;
+  }
+  .sz-submit:hover { background: #9C1205; }
+
+  .sz-foot { margin-top: 2.5rem; font-size: 12px; color: rgba(244,242,239,.35); }
+  .sz-foot a { color: #C21807; text-decoration: none; }
+  .sz-foot a:hover { text-decoration: underline; }
+  .sz-foot a.plain { color: rgba(244,242,239,.55); }
+
+  .sz-alert {
+    border-radius: 1rem; border: 1px solid rgba(194,24,7,.45);
+    background: rgba(194,24,7,.12); padding: .875rem 1rem;
+    font-size: 13px; color: #F4F2EF; margin-bottom: 1.25rem;
+  }
+  .sz-alert p { margin: 0; }
+  .sz-alert p + p { margin-top: .25rem; }
+
+  .sz-rise { opacity: 0; transform: translateY(18px); animation: sz-rise .8s cubic-bezier(.2,.8,.2,1) forwards; }
+  @keyframes sz-rise { to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .sz-rise, .sz-art-glow { animation: none; opacity: 1; transform: none; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sz-grid">
+  <div class="sz-art">
+    <img src="{% static 'img/chef.jpg' %}" alt="" aria-hidden="true" />
+    <div class="sz-art-shade"></div>
+    <div class="sz-art-glow"></div>
+    <div class="sz-art-copy">
+      <p class="sz-eyebrow">SAMZIC CONTROL ROOM</p>
+      <h2>Run the kitchen,<br />the orders and the floor<br /><span>from one place.</span></h2>
+      <p>Orders, menu, users, catering requests and delivery status — every record the storefront depends on.</p>
+    </div>
+  </div>
+
+  <div class="sz-pane">
+    <div class="sz-form-wrap">
+      <a href="/" class="sz-brand sz-rise">
+        <span class="sz-brand-mark">S</span>
+        <span class="sz-brand-name">SAMZIC<em>.</em><small>FOOD EMPIRE</small></span>
+      </a>
+
+      <h1 class="sz-rise" style="animation-delay:.1s">Staff sign in</h1>
+      <p class="sz-lede sz-rise" style="animation-delay:.16s">Restricted area. Use the credentials issued to your role.</p>
+
+      {% if form.errors and not form.non_field_errors %}
+        <div class="sz-alert sz-rise" role="alert">
+          <p>{% translate "Please correct the error below." %}</p>
+        </div>
+      {% endif %}
+
+      {% if form.non_field_errors %}
+        <div class="sz-alert sz-rise" role="alert">
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+      {% endif %}
+
+      <form action="{{ app_path }}" method="post" id="login-form" class="sz-form sz-rise" style="animation-delay:.22s">
+        {% csrf_token %}
+
+        <label class="sz-field" for="{{ form.username.id_for_label }}">
+          {{ form.username.label }}
+          {{ form.username }}
+        </label>
+
+        <label class="sz-field" for="{{ form.password.id_for_label }}">
+          {{ form.password.label }}
+          <span class="sz-input-wrap">
+            {{ form.password }}
+            <button type="button" class="sz-toggle" data-pw-toggle>Show</button>
+          </span>
+        </label>
+
+        {% url 'admin_password_reset' as password_reset_url %}
+        {% if password_reset_url %}
+          <p style="margin:0 0 1rem;font-size:12px;">
+            <a href="{{ password_reset_url }}" style="color:rgba(244,242,239,.45);text-decoration:none;">
+              {% translate 'Forgotten your password or username?' %}
+            </a>
+          </p>
+        {% endif %}
+
+        <input type="hidden" name="next" value="{{ next }}" />
+        <button type="submit" class="sz-submit">Sign in to control room</button>
+      </form>
+
+      <p class="sz-foot sz-rise" style="animation-delay:.3s">
+        Not staff? <a href="{% url 'accounts:login' %}">Customer sign in</a> &middot;
+        <a href="/" class="plain">Back to site</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Django renders the password widget itself, so the toggle is wired here
+  // rather than with an inline onclick attribute.
+  (function () {
+    var btn = document.querySelector('[data-pw-toggle]');
+    if (!btn) return;
+    var input = btn.parentNode.querySelector('input');
+    if (!input) return;
+    btn.addEventListener('click', function () {
+      var showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      btn.textContent = showing ? 'Show' : 'Hide';
+    });
+  })();
+</script>
+{% endblock %}

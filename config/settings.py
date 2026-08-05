@@ -246,14 +246,37 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "media/"
-# NOTE: Vercel's filesystem is read-only apart from /tmp, and every deployment
-# starts fresh — so images uploaded through the admin do NOT survive there.
-# Moving MEDIA to object storage (S3, Supabase Storage) is the fix; until then
-# food images should be committed under static/ rather than uploaded.
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Uploaded media (food images added through the admin) is stored on Cloudinary
+# rather than on disk. Vercel's filesystem is read-only apart from /tmp and every
+# deployment starts fresh, so a FileSystemStorage upload there is written into a
+# directory that no later request can read — which is why images uploaded through
+# the deployed admin came back as broken links.
+#
+# CLOUDINARY_URL carries the cloud name, API key and secret in one string:
+#   cloudinary://<api key>:<api secret>@<cloud name>
+# The cloudinary library reads it from the environment itself, so it is only
+# pulled in here to decide whether the backend is configured at all.
+CLOUDINARY_URL = env("CLOUDINARY_URL", default="")
+USE_CLOUDINARY = bool(CLOUDINARY_URL)
+
+if USE_CLOUDINARY:
+    # Appended rather than listed in DJANGO_APPS because both are optional: the
+    # project still runs with media on disk when CLOUDINARY_URL is unset.
+    INSTALLED_APPS = INSTALLED_APPS + ["cloudinary", "cloudinary_storage"]
+    # MediaCloudinaryStorage, not the raw or static variants — this is only the
+    # default (media) storage. Static files keep going through WhiteNoise, which
+    # already works and needs no external service.
+    DEFAULT_FILE_STORAGE_BACKEND = "cloudinary_storage.storage.MediaCloudinaryStorage"
+else:
+    # Local development without credentials, and the pre-Cloudinary fallback.
+    # On Vercel this leaves uploads broken, but a missing variable taking the
+    # whole site down would be worse than a missing image.
+    DEFAULT_FILE_STORAGE_BACKEND = "django.core.files.storage.FileSystemStorage"
+
 STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "default": {"BACKEND": DEFAULT_FILE_STORAGE_BACKEND},
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },

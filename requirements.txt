@@ -8,5 +8,11 @@ psycopg[binary]==3.2.4
 # Serve static files in production from Django without a separate CDN.
 whitenoise==6.9.0
 
+# Media (admin-uploaded food images) lives on Cloudinary. Vercel's filesystem is
+# read-only apart from /tmp and resets each deploy, so MEDIA_ROOT cannot hold
+# uploads there — without this, every uploaded image 404s on the deployed site.
+cloudinary==1.44.1
+django-cloudinary-storage==0.3.0
+
 # Uncomment when wiring up Paystack (see orders/payments.py)
 # requests==2.32.3

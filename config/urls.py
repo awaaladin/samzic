@@ -14,6 +14,7 @@ from . import views
 
 urlpatterns = [
     path("admin/control-room/", views.control_room, name="admin_control_room"),
+    path("admin/history/", views.change_history, name="admin_change_history"),
     path("admin/", admin.site.urls),
     path("control-room/", views.control_room, name="control_room"),
     path("account/", RedirectView.as_view(pattern_name="accounts:profile", permanent=False), name="account_dashboard"),

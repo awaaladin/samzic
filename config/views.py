@@ -5,7 +5,10 @@ Django only routes to these when DEBUG=False. To preview them locally, see the
 """
 
 from django.contrib import admin
+from django.contrib.admin.models import LogEntry
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django.shortcuts import render
 
 
@@ -40,6 +43,52 @@ def control_room(request):
         context["dashboard"] = None
     context["title"] = "Control room"
     return render(request, "admin/control_room.html", context)
+
+
+@staff_member_required
+def change_history(request):
+    """Site-wide admin audit trail — savory-serve's admin/history.html.
+
+    Django records every admin add/change/delete in LogEntry but only exposes it
+    per object, so there is no way to answer "what changed today, and who did
+    it". This is that view. It is read-only by design: the log is evidence, and
+    editing it would defeat the point.
+
+    Deliberately not named "admin/history.html": that template path is Django's
+    own per-object history page, and a file there would shadow it site-wide.
+    """
+    entries = LogEntry.objects.select_related("user", "content_type").order_by(
+        "-action_time"
+    )
+
+    query = request.GET.get("q", "").strip()
+    if query:
+        entries = entries.filter(
+            Q(user__username__icontains=query)
+            | Q(user__email__icontains=query)
+            | Q(object_repr__icontains=query)
+            | Q(content_type__model__icontains=query)
+            | Q(change_message__icontains=query)
+        )
+
+    action = request.GET.get("action", "").strip()
+    # Values match LogEntry's ADDITION/CHANGE/DELETION flags (1/2/3).
+    if action in {"1", "2", "3"}:
+        entries = entries.filter(action_flag=int(action))
+
+    page = Paginator(entries, 50).get_page(request.GET.get("page"))
+
+    context = admin.site.each_context(request)
+    context.update(
+        {
+            "title": "Change history",
+            "page_obj": page,
+            "query": query,
+            "action": action,
+            "total": page.paginator.count,
+        }
+    )
+    return render(request, "admin/change_history.html", context)
 
 
 def server_error(request):
