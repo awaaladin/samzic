@@ -47,7 +47,7 @@ class CustomLoginView(LoginView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return self.get_redirect_url() or reverse_lazy("accounts:profile")
+        return self.get_redirect_url() or reverse_lazy("accounts:dashboard")
 
     def form_invalid(self, form):
         # No messages.error here — the template renders an error summary inside
@@ -64,6 +64,32 @@ class CustomLogoutView(LogoutView):
         if request.user.is_authenticated:
             messages.info(request, "You have been logged out. Come back hungry!")
         return super().dispatch(request, *args, **kwargs)
+
+
+@login_required
+def dashboard(request):
+    """Customer dashboard: order activity at a glance.
+
+    Deliberately read-only and separate from the profile page. The profile is a
+    form you go to when something needs changing; this is the page you land on
+    to see where your orders stand, so it carries no form state and nothing here
+    can be accidentally submitted.
+    """
+    profile_obj, _ = Profile.objects.get_or_create(user=request.user)
+
+    orders = request.user.orders.all()[:6]
+    order_counts = {
+        "pending": request.user.orders.filter(status=Order.Status.PENDING).count(),
+        "confirmed": request.user.orders.filter(status=Order.Status.CONFIRMED).count(),
+        "delivered": request.user.orders.filter(status=Order.Status.DELIVERED).count(),
+        "total": request.user.orders.count(),
+    }
+    context = {
+        "profile": profile_obj,
+        "orders": orders,
+        "order_counts": order_counts,
+    }
+    return render(request, "accounts/dashboard.html", context)
 
 
 @login_required

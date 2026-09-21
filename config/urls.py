@@ -17,8 +17,10 @@ urlpatterns = [
     path("admin/history/", views.change_history, name="admin_change_history"),
     path("admin/", admin.site.urls),
     path("control-room/", views.control_room, name="control_room"),
+    # Short, memorable aliases for the two customer pages. The dashboard is the
+    # landing page after login; the profile is the form you go to from it.
     path("account/", RedirectView.as_view(pattern_name="accounts:profile", permanent=False), name="account_dashboard"),
-    path("dashboard/", RedirectView.as_view(pattern_name="accounts:profile", permanent=False), name="dashboard"),
+    path("dashboard/", RedirectView.as_view(pattern_name="accounts:dashboard", permanent=False), name="dashboard"),
     # Browsers request /favicon.ico from the domain root regardless of the
     # <link> tags, so point that at the real file instead of serving a 404.
     path(
