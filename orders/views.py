@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from accounts.models import Profile
 from cart.models import get_cart
@@ -23,6 +24,15 @@ def checkout(request):
         return redirect("menu:menu")
 
     profile, _ = Profile.objects.get_or_create(user=request.user)
+    if not profile.is_complete:
+        # Checkout is prefilled from the account page, so the account has to be
+        # filled in first. `next` brings the customer straight back afterwards.
+        messages.info(
+            request,
+            "Complete your name, phone number and delivery address so we can "
+            "fill in checkout for you.",
+        )
+        return redirect(f"{reverse('accounts:profile')}?next={reverse('orders:checkout')}")
     totals = get_order_totals(cart.get_total_price())
 
     if request.method == "POST":

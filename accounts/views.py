@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 
@@ -105,6 +106,11 @@ def profile(request):
             user_form.save()
             profile_form.save()
             messages.success(request, "Your profile has been updated.")
+            next_url = request.GET.get("next") or request.POST.get("next")
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url, allowed_hosts={request.get_host()}
+            ):
+                return redirect(next_url)
             return redirect("accounts:profile")
         messages.error(request, "Please correct the highlighted fields.")
     else:

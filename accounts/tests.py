@@ -52,18 +52,20 @@ class ProfileDashboardTests(TestCase):
             total_price=Decimal("12500.00"),
         )
         self.client.force_login(self.user)
-        response = self.client.get(reverse("accounts:profile"))
+        response = self.client.get(reverse("accounts:dashboard"))
         self.assertEqual(response.status_code, 200)
         # intcomma groups the thousands; without {% load humanize %} this 500s.
         self.assertContains(response, "12,500.00")
 
-    def test_dashboard_and_account_aliases_reach_the_profile(self):
+    def test_short_aliases_reach_dashboard_and_profile(self):
         self.client.force_login(self.user)
-        for name in ("dashboard", "account_dashboard"):
+        for name, target in (
+            ("dashboard", "accounts:dashboard"),
+            ("account_dashboard", "accounts:profile"),
+        ):
             with self.subTest(name=name):
-                response = self.client.get(reverse(name), follow=True)
-                self.assertEqual(response.status_code, 200)
-                self.assertContains(response, "My profile")
+                response = self.client.get(reverse(name))
+                self.assertRedirects(response, reverse(target))
 
 
 class SignUpPageTests(TestCase):

@@ -15,46 +15,72 @@ and history all keep working exactly as Django ships them.
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --primary: #141414;
-    --secondary: #141414;
+  /* Always-dark ink theme, matching the staff sign-in. Selectors cover every
+     way Django 5 picks light/dark so the OS or theme toggle cannot undo it. */
+  :root, html[data-theme], html:not([data-theme="light"]) {
+    color-scheme: dark;
+    --primary: #1D1D1D;
+    --secondary: #262626;
     --accent: #C21807;
     --primary-fg: #F4F2EF;
 
     --header-color: #F4F2EF;
     --header-branding-color: #F4F2EF;
-    --header-bg: #141414;
+    --header-bg: #0E0E0E;
     --header-link-color: #F4F2EF;
 
     --breadcrumbs-fg: #8A8A8A;
-    --breadcrumbs-link-fg: #141414;
-    --breadcrumbs-bg: #F4F2EF;
+    --breadcrumbs-link-fg: #F4F2EF;
+    --breadcrumbs-bg: #141414;
 
-    --link-fg: #C21807;
-    --link-hover-color: #9C1205;
-    --link-selected-fg: #9C1205;
+    --link-fg: #FF6A55;
+    --link-hover-color: #FF8F7F;
+    --link-selected-fg: #FF8F7F;
 
-    --body-fg: #141414;
-    --body-bg: #F7F6F4;
-    --body-quiet-color: #6B6B6B;
-    --body-loud-color: #141414;
+    --body-fg: #F4F2EF;
+    --body-bg: #141414;
+    --body-quiet-color: #9A9A9A;
+    --body-loud-color: #FFFFFF;
 
-    --button-bg: #141414;
+    --hairline-color: rgba(244, 242, 239, .10);
+    --border-color: rgba(244, 242, 239, .16);
+    --darkened-bg: #1B1B1B;
+    --error-fg: #FF7A6B;
+
+    --message-success-bg: #12301F;
+    --message-warning-bg: #3A2E10;
+    --message-error-bg: #3A1512;
+
+    --button-bg: #2E2E2E;
     --button-fg: #F4F2EF;
     --button-hover-bg: #C21807;
     --default-button-bg: #C21807;
     --default-button-hover-bg: #9C1205;
+    --close-button-bg: #3A3A3A;
+    --close-button-hover-bg: #4A4A4A;
     --delete-button-bg: #B3261E;
     --delete-button-hover-bg: #8C1D17;
 
     --object-tools-bg: #C21807;
     --object-tools-hover-bg: #9C1205;
 
-    --selected-bg: #F4F2EF;
-    --selected-row: #FDF3F1;
+    --selected-bg: #241412;
+    --selected-row: #2A1A17;
 
     --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
+
+  html, body { background: #141414; }
+  #nav-sidebar { background: #101010; border-right: 1px solid var(--hairline-color); }
+  #nav-sidebar .current-app .section:link, #nav-sidebar .current-model { background: #241412; }
+  .module h2, .module caption, .inline-group h2 { background: var(--secondary); color: #F4F2EF; }
+  .module, .inline-group .tabular, fieldset.module { border-color: var(--hairline-color); }
+  .module { background: #1B1B1B; }
+  thead th, tfoot td { background: #1B1B1B; }
+  input, select, textarea { color-scheme: dark; }
+  .submit-row { background: #1B1B1B; border-color: var(--hairline-color); }
+  #changelist-filter { background: #1B1B1B; border-color: var(--hairline-color); }
+  #changelist-filter li.selected a { color: #FF8F7F; }
 
   body { font-family: var(--font-family-primary); }
 
@@ -87,11 +113,11 @@ and history all keep working exactly as Django ships them.
     margin-bottom: 22px;
   }
   .dashboard-card {
-    background: #fff;
-    border: 1px solid rgba(20, 20, 20, .1);
+    background: #1B1B1B;
+    border: 1px solid rgba(244, 242, 239, .10);
     padding: 16px 18px;
   }
-  .dashboard-card.accent { border-color: rgba(194, 24, 7, .35); background: #FDF3F1; }
+  .dashboard-card.accent { border-color: rgba(194, 24, 7, .55); background: #2A1512; }
   .dashboard-label {
     font-size: 10px;
     letter-spacing: .14em;
@@ -105,7 +131,7 @@ and history all keep working exactly as Django ships them.
     font-weight: 800;
     line-height: 1.1;
   }
-  .dashboard-card.accent .dashboard-figure { color: #C21807; }
+  .dashboard-card.accent .dashboard-figure { color: #FF6A55; }
   .dashboard-note { font-size: 11px; color: #8A8A8A; margin-top: 3px; }
 
   .dashboard-section-title {
@@ -115,7 +141,7 @@ and history all keep working exactly as Django ships them.
     color: #8A8A8A;
     margin: 0 0 10px;
   }
-  table.dashboard-recent { width: 100%; background: #fff; border-radius: 10px; }
+  table.dashboard-recent { width: 100%; background: #1B1B1B; border-radius: 10px; }
   table.dashboard-recent td, table.dashboard-recent th { padding: 8px 12px; font-size: 12px; }
 
   .status-pill {
@@ -127,10 +153,35 @@ and history all keep working exactly as Django ships them.
     text-transform: uppercase;
     letter-spacing: .06em;
   }
-  .status-pending   { background: #FEF3C7; color: #92400E; }
-  .status-confirmed { background: #DBEAFE; color: #1E40AF; }
-  .status-delivered { background: #D1FAE5; color: #065F46; }
-  .status-unpaid    { background: #FDF3F1; color: #9C1205; }
+  .status-pending   { background: #3A2E10; color: #FBBF24; }
+  .status-confirmed { background: #13284A; color: #93C5FD; }
+  .status-delivered { background: #12301F; color: #6EE7B7; }
+  .status-unpaid    { background: #3A1512; color: #FF8F7F; }
+
+  /* --- Dashboard hero + quick actions ---------------------------------- */
+  .dash-hero {
+    position: relative; overflow: hidden; margin-bottom: 18px; padding: 26px 28px;
+    border-radius: 16px; border: 1px solid rgba(244, 242, 239, .10);
+    background: linear-gradient(120deg, #1D1D1D 0%, #141414 60%);
+  }
+  .dash-hero::after {
+    content: ""; position: absolute; right: -60px; top: -80px; width: 320px; height: 320px;
+    border-radius: 999px; background: rgba(194, 24, 7, .28); filter: blur(90px); pointer-events: none;
+  }
+  .dash-eyebrow { font-size: 11px; letter-spacing: .26em; text-transform: uppercase; color: #C21807; margin: 0; }
+  .dash-hero h2 {
+    margin: 10px 0 0; font-size: 28px; font-weight: 800; letter-spacing: -.02em;
+    color: #F4F2EF; background: none; padding: 0; text-transform: none;
+  }
+  .dash-hero p.dash-sub { margin: 6px 0 0; font-size: 13px; color: #9A9A9A; }
+  .dash-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; position: relative; z-index: 1; }
+  .dash-actions a {
+    display: inline-block; padding: 8px 16px; border-radius: 999px; font-size: 12px; font-weight: 600;
+    background: #2E2E2E; color: #F4F2EF; text-decoration: none; transition: background .2s;
+  }
+  .dash-actions a:hover { background: #C21807; color: #fff; }
+  .dash-actions a.primary { background: #C21807; }
+  .dash-actions a.primary:hover { background: #9C1205; }
 </style>
 {% endblock %}
 

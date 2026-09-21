@@ -9,6 +9,21 @@ Django's own app/model list underneath, so nothing is lost.
 {% endcomment %}
 
 {% block content %}
+<div class="dash-hero">
+  <p class="dash-eyebrow">Samzic control room</p>
+  <h2>Welcome back{% if user.first_name %}, {{ user.first_name }}{% elif user.username %}, {{ user.username }}{% endif %}</h2>
+  <p class="dash-sub">
+    {% if dashboard %}{{ dashboard.orders_pending }} order{{ dashboard.orders_pending|pluralize }} waiting for the kitchen &middot; {{ dashboard.messages_new }} unread message{{ dashboard.messages_new|pluralize }}{% else %}Manage your menu, orders and customers.{% endif %}
+  </p>
+  <div class="dash-actions">
+    <a class="primary" href="{% url 'admin:orders_order_changelist' %}">View orders</a>
+    <a href="{% url 'admin:menu_fooditem_add' %}">Add food item</a>
+    <a href="{% url 'admin:menu_fooditem_changelist' %}">Manage menu</a>
+    <a href="{% url 'admin_control_room' %}">Control room</a>
+    <a href="/">View site</a>
+  </div>
+</div>
+
 {% if dashboard %}
 <div class="dashboard-grid">
   <div class="dashboard-card accent">
@@ -57,7 +72,7 @@ Django's own app/model list underneath, so nothing is lost.
 </div>
 
 {% if dashboard.recent_orders %}
-<div class="module" style="padding:16px 18px;margin-bottom:22px;">
+<div class="module" style="padding:16px 18px;margin-bottom:22px;background:#1B1B1B;">
   <p class="dashboard-section-title">Latest orders</p>
   <table class="dashboard-recent">
     <thead>
