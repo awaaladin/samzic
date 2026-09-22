@@ -1,0 +1,110 @@
+{% extends "console/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-7 overflow-hidden rounded-3xl border border-ink/10 bg-ink p-8">
+  <p class="text-[11px] font-semibold uppercase tracking-[0.26em] text-ember-light">Samzic console</p>
+  <h2 class="display mt-2 text-3xl font-extrabold text-bone">
+    Welcome back{% if user.first_name %}, {{ user.first_name }}{% else %}, {{ user.username }}{% endif %}
+  </h2>
+  <p class="mt-2 text-sm text-bone/50">
+    {% if stats %}{{ stats.orders_pending }} order{{ stats.orders_pending|pluralize }} waiting for the kitchen · {{ stats.messages_new }} unread message{{ stats.messages_new|pluralize }}{% else %}Manage your menu, orders and customers.{% endif %}
+  </p>
+  <div class="mt-6 flex flex-wrap gap-2.5">
+    <a href="{% url 'console:orders' %}" class="rounded-full bg-ember px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ember-dark">View orders</a>
+    <a href="{% url 'console:food_item_add' %}" class="rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-bone transition hover:bg-white/15">Add food item</a>
+    <a href="{% url 'console:food_items' %}" class="rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-bone transition hover:bg-white/15">Manage menu</a>
+  </div>
+</div>
+
+{% if stats %}
+<div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+  <div class="rounded-2xl border border-ember/25 bg-ember/5 p-5">
+    <p class="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ember-dark/70">Orders today</p>
+    <p class="display mt-2 text-3xl font-extrabold text-ink">{{ stats.orders_today }}</p>
+    <p class="mt-1 text-xs text-ink/45">{{ stats.orders_week }} in the last 7 days</p>
+  </div>
+  <div class="rounded-2xl border border-ink/10 bg-white p-5">
+    <p class="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink/40">Pending</p>
+    <p class="display mt-2 text-3xl font-extrabold text-ink">{{ stats.orders_pending }}</p>
+    <p class="mt-1 text-xs text-ink/45">awaiting confirmation</p>
+  </div>
+  <div class="rounded-2xl border border-ink/10 bg-white p-5">
+    <p class="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink/40">Confirmed</p>
+    <p class="display mt-2 text-3xl font-extrabold text-ink">{{ stats.orders_confirmed }}</p>
+    <p class="mt-1 text-xs text-ink/45">in the kitchen now</p>
+  </div>
+  <div class="rounded-2xl border border-ink/10 bg-white p-5">
+    <p class="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink/40">Delivered</p>
+    <p class="display mt-2 text-3xl font-extrabold text-ink">{{ stats.orders_delivered }}</p>
+    <p class="mt-1 text-xs text-ink/45">all time</p>
+  </div>
+  <div class="rounded-2xl border border-ink/10 bg-white p-5">
+    <p class="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink/40">Collected</p>
+    <p class="display mt-2 text-3xl font-extrabold text-ink">₦{{ stats.revenue_paid|floatformat:0 }}</p>
+    <p class="mt-1 text-xs text-ink/45">{{ stats.unpaid_count }} order(s) unpaid</p>
+  </div>
+  <div class="rounded-2xl border border-ink/10 bg-white p-5">
+    <p class="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink/40">On the menu</p>
+    <p class="display mt-2 text-3xl font-extrabold text-ink">{{ stats.food_total }}</p>
+    <p class="mt-1 text-xs text-ink/45">{{ stats.category_total }} categor{{ stats.category_total|pluralize:"y,ies" }}, {{ stats.food_sold_out }} sold out</p>
+  </div>
+  <div class="rounded-2xl border border-ink/10 bg-white p-5{% if stats.messages_new %} ring-1 ring-ember/30{% endif %}">
+    <p class="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink/40">New messages</p>
+    <p class="display mt-2 text-3xl font-extrabold text-ink">{{ stats.messages_new }}</p>
+    <p class="mt-1 text-xs text-ink/45">unhandled enquiries</p>
+  </div>
+  <div class="rounded-2xl border border-ink/10 bg-white p-5{% if stats.catering_new %} ring-1 ring-ember/30{% endif %}">
+    <p class="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink/40">Catering leads</p>
+    <p class="display mt-2 text-3xl font-extrabold text-ink">{{ stats.catering_new }}</p>
+    <p class="mt-1 text-xs text-ink/45">not yet quoted</p>
+  </div>
+</div>
+
+{% if stats.recent_orders %}
+<div class="mt-7 overflow-hidden rounded-2xl border border-ink/10 bg-white">
+  <div class="flex items-center justify-between border-b border-ink/10 px-5 py-3.5">
+    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/40">Latest orders</p>
+    <a href="{% url 'console:orders' %}" class="text-xs font-semibold text-ember hover:text-ember-dark">See all →</a>
+  </div>
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-ink/10 text-left text-[10.5px] uppercase tracking-[0.1em] text-ink/40">
+        <th class="px-5 py-2.5 font-semibold">Reference</th>
+        <th class="px-5 py-2.5 font-semibold">Customer</th>
+        <th class="px-5 py-2.5 font-semibold">Total</th>
+        <th class="px-5 py-2.5 font-semibold">Status</th>
+        <th class="px-5 py-2.5 font-semibold">Payment</th>
+        <th class="px-5 py-2.5 font-semibold">Placed</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in stats.recent_orders %}
+        <tr class="border-b border-ink/5 last:border-0 hover:bg-bone/60">
+          <td class="px-5 py-3">
+            <a href="{% url 'console:order_detail' order.reference %}" class="font-semibold text-ink hover:text-ember">{{ order.reference }}</a>
+          </td>
+          <td class="px-5 py-3 text-ink/70">{{ order.full_name }}</td>
+          <td class="px-5 py-3 font-semibold text-ink">₦{{ order.total_price|floatformat:0 }}</td>
+          <td class="px-5 py-3">{% include "console/_status_pill.html" with status=order.status label=order.get_status_display %}</td>
+          <td class="px-5 py-3">
+            {% if order.payment_status == "paid" %}
+              {% include "console/_status_pill.html" with status="delivered" label="Paid" %}
+            {% else %}
+              {% include "console/_status_pill.html" with status="unpaid" label="Unpaid" %}
+            {% endif %}
+          </td>
+          <td class="px-5 py-3 text-ink/50">{{ order.created_at|date:"j M, H:i" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% else %}
+<div class="rounded-2xl border border-ink/10 bg-white p-8 text-center text-sm text-ink/50">
+  Dashboard figures are unavailable right now — the underlying tables may still be migrating.
+</div>
+{% endif %}
+{% endblock %}

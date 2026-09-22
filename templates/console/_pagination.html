@@ -1,0 +1,16 @@
+{% comment %}Usage: {% include "console/_pagination.html" with page_obj=page_obj %}{% endcomment %}
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="flex items-center justify-between border-t border-ink/10 px-5 py-3.5 text-sm">
+  <p class="text-ink/45">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</p>
+  <div class="flex gap-2">
+    {% if page_obj.has_previous %}
+      <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}"
+         class="rounded-full border border-ink/15 px-3.5 py-1.5 font-semibold text-ink/70 hover:border-ember hover:text-ember">Previous</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+      <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}"
+         class="rounded-full border border-ink/15 px-3.5 py-1.5 font-semibold text-ink/70 hover:border-ember hover:text-ember">Next</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}

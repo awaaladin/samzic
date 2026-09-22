@@ -1,0 +1,62 @@
+{% comment %}
+The console's own navigation — a persistent dark sidebar, hand-built for this
+layout. Not django.contrib.admin's nav_sidebar.html; no shared markup with it.
+Active-state is decided from request.resolver_match.url_name, since every
+route here lives in the 'console' namespace.
+{% endcomment %}
+{% with url_name=request.resolver_match.url_name %}
+<aside id="console-sidebar"
+       class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col bg-ink transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0">
+  <a href="{% url 'console:dashboard' %}" class="flex items-center gap-3 px-5 py-5">
+    <span class="display grid h-9 w-9 place-items-center rounded-full bg-bone text-[15px] font-extrabold text-ink">S</span>
+    <span class="leading-none">
+      <span class="display block text-[15px] font-extrabold text-bone">Console</span>
+      <span class="block text-[10px] font-medium tracking-[0.18em] text-bone/40">SAMZIC FOODS</span>
+    </span>
+  </a>
+
+  <nav class="flex-1 space-y-0.5 overflow-y-auto px-3 pb-6">
+    <a href="{% url 'console:dashboard' %}" class="cnav{% if url_name == 'dashboard' %} current{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-5h2v5h4a1 1 0 0 0 1-1v-9"/></svg>
+      Dashboard
+    </a>
+
+    <p class="csection">Orders</p>
+    <a href="{% url 'console:orders' %}" class="cnav{% if 'order' in url_name %} current{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>
+      All orders
+    </a>
+
+    <p class="csection">Menu</p>
+    <a href="{% url 'console:categories' %}" class="cnav{% if 'categor' in url_name %} current{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M9 9.5V20"/></svg>
+      Categories
+    </a>
+    <a href="{% url 'console:food_items' %}" class="cnav{% if 'food_item' in url_name %} current{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a2 2 0 0 0 4 0V3"/><path d="M8 10v11"/><path d="M17 3c-1.6 0-3 1.6-3 4v3c0 1.1 1 2 2 2v9"/></svg>
+      Food items
+    </a>
+
+    <p class="csection">Marketing</p>
+    <a href="{% url 'console:catering' %}" class="cnav{% if 'catering' in url_name %} current{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v3a1 1 0 0 0 1 1h2l4 4V6l-4 4H4a1 1 0 0 0-1 1z"/><path d="M14 8a4 4 0 0 1 0 8"/><path d="M17 5a8 8 0 0 1 0 14"/></svg>
+      Catering leads
+    </a>
+    <a href="{% url 'console:messages' %}" class="cnav{% if 'message' in url_name %} current{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v13H9l-5 3z"/><path d="M8 9h8M8 12.5h5"/></svg>
+      Messages
+    </a>
+
+    <p class="csection">More</p>
+    <a href="{% url 'admin:index' %}" class="cnav">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z"/></svg>
+      Django admin
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ml-auto !h-3.5 !w-3.5 opacity-50"><path d="M7 17 17 7M7 7h10v10"/></svg>
+    </a>
+  </nav>
+
+  <div class="border-t border-white/10 px-5 py-4 text-[11px] text-bone/35">
+    Signed in as<br /><span class="text-bone/60">{{ user.email|default:user.username }}</span>
+  </div>
+</aside>
+{% endwith %}

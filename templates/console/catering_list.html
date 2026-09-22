@@ -1,0 +1,46 @@
+{% extends "console/base.html" %}
+{% block title %}Catering leads{% endblock %}
+{% block page_title %}Catering leads{% endblock %}
+
+{% block content %}
+<form method="get" class="mb-5 flex flex-wrap gap-3">
+  <select name="status" onchange="this.form.submit()"
+          class="rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm focus:border-ember focus:ring-2 focus:ring-ember/15">
+    <option value="">All statuses</option>
+    {% for value, label in status_choices %}
+      <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+</form>
+
+<div class="overflow-hidden rounded-2xl border border-ink/10 bg-white">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-ink/10 text-left text-[10.5px] uppercase tracking-[0.1em] text-ink/40">
+        <th class="px-5 py-3 font-semibold">Contact</th>
+        <th class="px-5 py-3 font-semibold">Event</th>
+        <th class="px-5 py-3 font-semibold">Guests</th>
+        <th class="px-5 py-3 font-semibold">Date</th>
+        <th class="px-5 py-3 font-semibold">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lead in page_obj %}
+        <tr class="cursor-pointer border-b border-ink/5 last:border-0 hover:bg-bone/60" onclick="location.href='{% url 'console:catering_detail' lead.pk %}'">
+          <td class="px-5 py-3.5">
+            <a href="{% url 'console:catering_detail' lead.pk %}" class="font-semibold text-ink hover:text-ember">{{ lead.full_name }}</a>
+            <p class="mt-0.5 text-xs text-ink/45">{{ lead.email }}</p>
+          </td>
+          <td class="px-5 py-3.5 text-ink/60">{{ lead.get_event_type_display }}</td>
+          <td class="px-5 py-3.5 text-ink/60">{{ lead.guest_count }}</td>
+          <td class="px-5 py-3.5 text-ink/60">{{ lead.event_date|date:"j M Y" }}</td>
+          <td class="px-5 py-3.5">{% include "console/_status_pill.html" with status=lead.status label=lead.get_status_display %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="px-5 py-10 text-center text-ink/40">No catering leads yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "console/_pagination.html" with page_obj=page_obj %}
+</div>
+{% endblock %}

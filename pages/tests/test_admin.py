@@ -111,7 +111,7 @@ class AdminSiteTests(TestCase):
         from unittest.mock import patch
 
         with patch(
-            "config.admin.SamzicAdminSite.dashboard_stats",
+            "config.admin.dashboard_stats",
             side_effect=RuntimeError("table missing"),
         ):
             response = self.client.get(reverse("admin:index"))

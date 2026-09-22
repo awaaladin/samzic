@@ -1,0 +1,40 @@
+{% extends "console/base.html" %}
+{% block title %}Messages{% endblock %}
+{% block page_title %}Messages{% endblock %}
+
+{% block content %}
+<div class="overflow-hidden rounded-2xl border border-ink/10 bg-white">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-ink/10 text-left text-[10.5px] uppercase tracking-[0.1em] text-ink/40">
+        <th class="px-5 py-3 font-semibold">From</th>
+        <th class="px-5 py-3 font-semibold">Subject</th>
+        <th class="px-5 py-3 font-semibold">Received</th>
+        <th class="px-5 py-3 font-semibold">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in page_obj %}
+        <tr class="cursor-pointer border-b border-ink/5 last:border-0 hover:bg-bone/60" onclick="location.href='{% url 'console:message_detail' m.pk %}'">
+          <td class="px-5 py-3.5">
+            <a href="{% url 'console:message_detail' m.pk %}" class="font-semibold text-ink hover:text-ember">{{ m.full_name }}</a>
+            <p class="mt-0.5 text-xs text-ink/45">{{ m.email }}</p>
+          </td>
+          <td class="px-5 py-3.5 text-ink/60">{{ m.get_subject_display }}</td>
+          <td class="px-5 py-3.5 text-ink/50">{{ m.created_at|date:"j M Y, H:i" }}</td>
+          <td class="px-5 py-3.5">
+            {% if m.is_handled %}
+              {% include "console/_status_pill.html" with status="delivered" label="Handled" %}
+            {% else %}
+              {% include "console/_status_pill.html" with status="new" label="New" %}
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="px-5 py-10 text-center text-ink/40">No messages yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "console/_pagination.html" with page_obj=page_obj %}
+</div>
+{% endblock %}

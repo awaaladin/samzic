@@ -13,6 +13,10 @@ from . import views
 # login page too rather than only after the site module is imported.
 
 urlpatterns = [
+    # The console (console/urls.py) is the primary staff surface — its own
+    # views and templates, not django.contrib.admin. /admin/ stays live
+    # underneath as the fallback for anything the console doesn't cover yet.
+    path("console/", include("console.urls")),
     path("admin/control-room/", views.control_room, name="admin_control_room"),
     path("admin/history/", views.change_history, name="admin_change_history"),
     path("admin/", admin.site.urls),

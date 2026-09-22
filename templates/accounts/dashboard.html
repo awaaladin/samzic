@@ -27,7 +27,7 @@
           Browse menu
         </a>
         {% if user.is_staff %}
-          <a href="{% url 'admin:index' %}" class="rounded-full border border-ink/20 bg-white px-5 py-2 text-sm font-semibold text-ink transition hover:border-ember hover:text-ember">
+          <a href="{% url 'console:dashboard' %}" class="rounded-full border border-ink/20 bg-white px-5 py-2 text-sm font-semibold text-ink transition hover:border-ember hover:text-ember">
             Admin console →
           </a>
         {% endif %}

@@ -1,0 +1,103 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{% block title %}Console{% endblock %} — Samzic Foods Empire</title>
+<meta name="robots" content="noindex,nofollow" />
+<link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml" />
+<meta name="theme-color" content="#141414" />
+
+{% comment %}
+A standalone document — it does not extend templates/base.html (the
+storefront chrome) or any admin/ template. Same brand tokens as the
+storefront (Tailwind CDN, ink/ember/bone, same fonts) for visual continuity,
+but its own layout, markup and navigation end to end.
+{% endcomment %}
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ink: { DEFAULT: '#141414', soft: '#1D1D1D', line: '#2A2A2A', mute: '#8A8A8A' },
+        ember: { DEFAULT: '#C21807', dark: '#9C1205', light: '#E8402C' },
+        bone: '#F4F2EF'
+      },
+      fontFamily: { display: ['"Bricolage Grotesque"','sans-serif'], sans: ['Inter','sans-serif'] }
+    }
+  }
+}
+</script>
+<style>
+  body { background: #F4F2EF; color: #141414; font-family: Inter, sans-serif; }
+  .display { font-family: 'Bricolage Grotesque', sans-serif; letter-spacing: -0.02em; }
+  input, select, textarea { outline: none; }
+  input:focus, select:focus, textarea:focus { border-color: #C21807 !important; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #d5d1cc; border-radius: 99px; }
+  #console-sidebar::-webkit-scrollbar-thumb { background: #3A3A3A; }
+  .cnav {
+    display: flex; align-items: center; gap: 11px; padding: 9px 14px; border-radius: 10px;
+    font-size: 13.5px; font-weight: 500; color: rgba(244,242,239,.65); transition: background .15s, color .15s;
+  }
+  .cnav:hover { background: rgba(244,242,239,.06); color: #F4F2EF; }
+  .cnav.current { background: #C21807; color: #fff; font-weight: 600; }
+  .cnav svg { width: 17px; height: 17px; flex: none; }
+  .csection { padding: 16px 14px 6px; font-size: 10.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: rgba(244,242,239,.3); }
+  /* Django renders form errors as <ul class="errorlist">. */
+  .errorlist { margin: .4rem 0 0; padding: 0; list-style: none; font-size: .75rem; color: #C21807; }
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body class="antialiased">
+
+<div class="flex min-h-screen">
+  {% include "console/_sidebar.html" %}
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-ink/10 bg-bone/90 px-5 py-3.5 backdrop-blur lg:px-8">
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="document.getElementById('console-sidebar').classList.toggle('-translate-x-full')"
+                class="grid h-9 w-9 place-items-center rounded-lg border border-ink/15 lg:hidden" aria-label="Toggle navigation">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <h1 class="display text-lg font-bold text-ink">{% block page_title %}Dashboard{% endblock %}</h1>
+      </div>
+      <div class="flex items-center gap-3 text-sm">
+        <a href="/" class="hidden text-ink/55 hover:text-ember sm:inline">View site ↗</a>
+        <span class="hidden h-4 w-px bg-ink/15 sm:inline"></span>
+        <span class="hidden text-ink/45 sm:inline">{{ user.get_short_name|default:user.username }}</span>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="rounded-full border border-ink/15 px-3.5 py-1.5 text-xs font-semibold text-ink/70 transition hover:border-ember hover:text-ember">
+            Sign out
+          </button>
+        </form>
+      </div>
+    </header>
+
+    {% if messages %}
+      <div class="space-y-2 px-5 pt-4 lg:px-8">
+        {% for message in messages %}
+          <div class="rounded-xl border px-4 py-2.5 text-sm
+            {% if message.tags == 'success' %}border-emerald-600/20 bg-emerald-50 text-emerald-800
+            {% elif message.tags == 'error' %}border-ember/25 bg-ember/5 text-ember-dark
+            {% else %}border-ink/10 bg-white text-ink/70{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <main class="flex-1 px-5 py-6 lg:px-8 lg:py-8">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+</body>
+</html>

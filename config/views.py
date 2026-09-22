@@ -11,6 +11,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import render
 
+from console.services import dashboard_stats
+
 
 def page_not_found(request, exception):  # noqa: ARG001 - signature fixed by Django
     return render(request, "404.html", status=404)
@@ -38,7 +40,7 @@ def csrf_failure(request, reason=""):  # noqa: ARG001 - signature fixed by Djang
 def control_room(request):
     context = admin.site.each_context(request)
     try:
-        context["dashboard"] = admin.site.dashboard_stats()
+        context["dashboard"] = dashboard_stats()
     except Exception:
         context["dashboard"] = None
     context["title"] = "Control room"
