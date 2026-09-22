@@ -4,6 +4,9 @@ Overrides Django's stock app_list.html (used by the sidebar, the app-index
 page, and popups) purely to prefix each section with a brand icon. Structure,
 classes and the current-app/current-model highlighting are untouched, so
 nav_sidebar.js and nav_sidebar.css keep working as shipped.
+
+Icons are inline stroke SVGs (24x24 viewBox, currentColor) rather than emoji,
+so they render the same everywhere and pick up the sidebar's text colour.
 {% endcomment %}
 
 {% if app_list %}
@@ -12,15 +15,24 @@ nav_sidebar.js and nav_sidebar.css keep working as shipped.
       <table>
         <caption>
           <a href="{{ app.app_url }}" class="section" title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}">
-            <span class="sz-app-icon">
-              {% if app.app_label == "orders" %}🧾
-              {% elif app.app_label == "menu" %}🍲
-              {% elif app.app_label == "pages" %}📣
-              {% elif app.app_label == "builder" %}🎨
-              {% elif app.app_label == "auth" %}🔐
-              {% elif app.app_label == "accounts" %}👤
-              {% elif app.app_label == "cart" %}🛒
-              {% else %}📁{% endif %}
+            <span class="sz-app-icon" aria-hidden="true">
+              {% if app.app_label == "orders" %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>
+              {% elif app.app_label == "menu" %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a2 2 0 0 0 4 0V3"/><path d="M8 10v11"/><path d="M17 3c-1.6 0-3 1.6-3 4v3c0 1.1 1 2 2 2v9"/></svg>
+              {% elif app.app_label == "pages" %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v3a1 1 0 0 0 1 1h2l4 4V6l-4 4H4a1 1 0 0 0-1 1z"/><path d="M14 8a4 4 0 0 1 0 8"/><path d="M17 5a8 8 0 0 1 0 14"/></svg>
+              {% elif app.app_label == "builder" %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M9 9.5V20"/></svg>
+              {% elif app.app_label == "auth" %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z"/></svg>
+              {% elif app.app_label == "accounts" %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/></svg>
+              {% elif app.app_label == "cart" %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.4 12.3a2 2 0 0 0 2 1.7h7.7a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+              {% else %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+              {% endif %}
             </span>{{ app.name }}
           </a>
         </caption>

@@ -82,11 +82,10 @@ and history all keep working exactly as Django ships them.
   }
   .sz-nav-home:hover { background: #1B1B1B; }
   .sz-nav-home.current { background: #C21807; color: #fff; }
-  .sz-nav-home-dot {
-    width: 8px; height: 8px; border-radius: 999px; background: currentColor; flex: none;
-  }
-  #nav-sidebar caption .section { display: flex; align-items: center; gap: 8px; }
-  .sz-app-icon { font-size: 13px; line-height: 1; }
+  #nav-sidebar caption .section { display: flex; align-items: center; gap: 9px; }
+  .sz-app-icon { display: inline-flex; flex: none; color: #8A8A8A; }
+  .sz-app-icon svg { width: 15px; height: 15px; display: block; }
+  .sz-nav-home .sz-app-icon, .current-app .sz-app-icon { color: inherit; }
   #nav-sidebar .module caption {
     text-transform: uppercase; letter-spacing: .08em; font-size: 10px; color: #8A8A8A;
     background: transparent; padding: 14px 10px 6px;

@@ -13,7 +13,9 @@ admin/index.html otherwise blanks out (see samzic_index.html).
 <nav class="sticky" id="nav-sidebar" aria-label="{% translate 'Sidebar' %}">
   {% url 'admin:index' as sz_home_url %}
   <a href="{{ sz_home_url }}" class="sz-nav-home{% if request.path == sz_home_url %} current{% endif %}">
-    <span class="sz-nav-home-dot"></span>{% translate 'Dashboard' %}
+    <span class="sz-app-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h4v-5h2v5h4a1 1 0 0 0 1-1v-9"/></svg>
+    </span>{% translate 'Dashboard' %}
   </a>
   <input type="search" id="nav-filter"
          placeholder="{% translate 'Start typing to filter…' %}"
