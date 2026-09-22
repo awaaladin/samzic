@@ -26,6 +26,11 @@
         <a href="{% url 'menu:menu' %}" class="rounded-full bg-ember px-5 py-2 text-sm font-semibold text-bone transition hover:bg-ember-dark">
           Browse menu
         </a>
+        {% if user.is_staff %}
+          <a href="{% url 'admin:index' %}" class="rounded-full border border-ink/20 bg-white px-5 py-2 text-sm font-semibold text-ink transition hover:border-ember hover:text-ember">
+            Admin console →
+          </a>
+        {% endif %}
       </div>
     </div>
   </header>

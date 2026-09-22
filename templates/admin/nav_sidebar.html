@@ -1,0 +1,22 @@
+{% load i18n %}
+{% comment %}
+Overrides Django's stock nav_sidebar.html (same include point, same IDs) so
+the built-in collapse toggle (nav_sidebar.js) and live filter keep working
+unmodified. The only changes: a "Dashboard" link back to the console home,
+and reusing our own app_list.html for section icons.
+
+Because this lives at the same template path, it now renders on every admin
+page that shows the sidebar — including the index page, which Django's own
+admin/index.html otherwise blanks out (see samzic_index.html).
+{% endcomment %}
+<button class="sticky toggle-nav-sidebar" id="toggle-nav-sidebar" aria-label="{% translate 'Toggle navigation' %}"></button>
+<nav class="sticky" id="nav-sidebar" aria-label="{% translate 'Sidebar' %}">
+  {% url 'admin:index' as sz_home_url %}
+  <a href="{{ sz_home_url }}" class="sz-nav-home{% if request.path == sz_home_url %} current{% endif %}">
+    <span class="sz-nav-home-dot"></span>{% translate 'Dashboard' %}
+  </a>
+  <input type="search" id="nav-filter"
+         placeholder="{% translate 'Start typing to filter…' %}"
+         aria-label="{% translate 'Filter navigation items' %}">
+  {% include 'admin/app_list.html' with app_list=available_apps show_changelinks=False %}
+</nav>

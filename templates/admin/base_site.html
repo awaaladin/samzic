@@ -71,8 +71,30 @@ and history all keep working exactly as Django ships them.
   }
 
   html, body { background: #141414; }
-  #nav-sidebar { background: #101010; border-right: 1px solid var(--hairline-color); }
+  #nav-sidebar { background: #101010; border-right: 1px solid var(--hairline-color); padding-top: 4px; }
   #nav-sidebar .current-app .section:link, #nav-sidebar .current-model { background: #241412; }
+
+  /* --- Console sidebar (nav_sidebar.html / app_list.html overrides) ---- */
+  .sz-nav-home {
+    display: flex; align-items: center; gap: 10px; margin: 6px 10px 10px;
+    padding: 10px 12px; border-radius: 10px; text-decoration: none;
+    font-size: 13px; font-weight: 600; color: #F4F2EF;
+  }
+  .sz-nav-home:hover { background: #1B1B1B; }
+  .sz-nav-home.current { background: #C21807; color: #fff; }
+  .sz-nav-home-dot {
+    width: 8px; height: 8px; border-radius: 999px; background: currentColor; flex: none;
+  }
+  #nav-sidebar caption .section { display: flex; align-items: center; gap: 8px; }
+  .sz-app-icon { font-size: 13px; line-height: 1; }
+  #nav-sidebar .module caption {
+    text-transform: uppercase; letter-spacing: .08em; font-size: 10px; color: #8A8A8A;
+    background: transparent; padding: 14px 10px 6px;
+  }
+  #nav-sidebar .module caption a.section { color: #8A8A8A; }
+  #nav-sidebar .module { background: transparent; border: none; margin: 0; }
+  #nav-sidebar .module th a { border-radius: 8px; padding: 7px 10px; display: block; }
+  #nav-sidebar .current-model th a { color: #FF8F7F; font-weight: 600; }
   .module h2, .module caption, .inline-group h2 { background: var(--secondary); color: #F4F2EF; }
   .module, .inline-group .tabular, fieldset.module { border-color: var(--hairline-color); }
   .module { background: #1B1B1B; }

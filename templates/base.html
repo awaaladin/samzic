@@ -90,6 +90,12 @@ tailwind.config = {
         {% if user.is_authenticated %}
           <a href="{% url 'accounts:profile' %}" class="underline-grow text-sm {% block nav_account %}text-ink/70 hover:text-ink{% endblock %}">Account</a>
         {% endif %}
+        {% if user.is_staff %}
+          <a href="{% url 'admin:index' %}" class="underline-grow flex items-center gap-1.5 text-sm text-ink/70 hover:text-ink">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h16v4H4zM4 10h16v10H4z"/><path d="M8 14h4"/></svg>
+            Admin console
+          </a>
+        {% endif %}
       </nav>
 
       <div class="flex items-center gap-3">
@@ -124,6 +130,9 @@ tailwind.config = {
         {% if user.is_authenticated %}
           <a href="{% url 'orders:list' %}" class="hover:text-ember">My orders</a>
           <a href="{% url 'accounts:profile' %}" class="hover:text-ember">My account</a>
+          {% if user.is_staff %}
+            <a href="{% url 'admin:index' %}" class="hover:text-ember">Admin console</a>
+          {% endif %}
           <form method="post" action="{% url 'accounts:logout' %}">
             {% csrf_token %}
             <button type="submit" class="text-left hover:text-ember">Sign out</button>
