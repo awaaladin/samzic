@@ -3,14 +3,17 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from accounts.models import Profile
 from cart.models import get_cart
 
-from .forms import CheckoutForm
-from .models import Order, OrderItem
+from django.views.decorators.http import require_POST
+
+from .forms import CheckoutForm, OrderMessageForm
+from .models import Order, OrderItem, OrderMessage
 from .payments import get_gateway
 from .services import get_order_totals
 
@@ -119,10 +122,21 @@ def order_list(request):
     """The customer's own order history."""
     orders = (
         Order.objects.filter(user=request.user)
+        .annotate(
+            unread_replies=Count(
+                "messages",
+                filter=Q(messages__sender=OrderMessage.Sender.KITCHEN, messages__is_read=False),
+            )
+        )
         .prefetch_related("items")
         .order_by("-created_at")
     )
     return render(request, "orders/list.html", {"orders": orders})
+
+
+# Statuses where the kitchen can still act on a message. Once an order is
+# delivered or cancelled the thread stays readable but closes to new messages.
+MESSAGEABLE_STATUSES = (Order.Status.PENDING, Order.Status.CONFIRMED)
 
 
 @login_required
@@ -131,4 +145,42 @@ def order_detail(request, reference):
     order = get_object_or_404(
         Order.objects.prefetch_related("items"), reference=reference, user=request.user
     )
-    return render(request, "orders/detail.html", {"order": order})
+    # Opening the page is what "read" means: the kitchen's replies stop counting
+    # as unread for this customer.
+    order.messages.filter(sender=OrderMessage.Sender.KITCHEN, is_read=False).update(is_read=True)
+
+    context = {
+        "order": order,
+        "thread": order.messages.select_related("author"),
+        "message_form": OrderMessageForm(),
+        "can_message": order.status in MESSAGEABLE_STATUSES,
+    }
+    return render(request, "orders/detail.html", context)
+
+
+@login_required
+@require_POST
+def order_message(request, reference):
+    """Send a note to the kitchen about this order."""
+    order = get_object_or_404(Order, reference=reference, user=request.user)
+    back = redirect(f"{reverse('orders:detail', args=[order.reference])}#kitchen")
+
+    if order.status not in MESSAGEABLE_STATUSES:
+        messages.error(request, "This order is closed, so it can't take new messages. Call us if something is wrong.")
+        return back
+    if order.messages.count() >= OrderMessage.MAX_PER_ORDER:
+        messages.error(request, "This order's message thread is full. Please call us instead.")
+        return back
+
+    form = OrderMessageForm(request.POST)
+    if form.is_valid():
+        OrderMessage.objects.create(
+            order=order,
+            sender=OrderMessage.Sender.CUSTOMER,
+            author=request.user,
+            body=form.cleaned_data["body"],
+        )
+        messages.success(request, "Sent to the kitchen — they will reply here.")
+    else:
+        messages.error(request, " ".join(form.errors.get("body", ["Please write a message."])))
+    return back

@@ -1,0 +1,26 @@
+{% extends "console/base.html" %}
+{% block title %}{% if package %}Edit package{% else %}Add package{% endif %}{% endblock %}
+{% block page_title %}
+  <a href="{% url 'console:packages' %}" class="text-ink/40 hover:text-ember">Catering prices</a>
+  <span class="text-ink/30"> / </span>{% if package %}Edit{% else %}Add{% endif %}
+{% endblock %}
+
+{% block content %}
+<form method="post" class="max-w-2xl rounded-2xl border border-ink/10 bg-white p-6">
+  {% csrf_token %}
+  <div class="grid gap-5 sm:grid-cols-2">
+    {% include "partials/_field.html" with field=form.name span=True %}
+    {% include "partials/_field.html" with field=form.description span=True %}
+    {% include "partials/_field.html" with field=form.price_per_plate %}
+    {% include "partials/_field.html" with field=form.minimum_guests %}
+    {% include "partials/_field.html" with field=form.display_order %}
+    {% include "partials/_field.html" with field=form.is_active %}
+  </div>
+  <div class="mt-6 flex gap-3">
+    <button type="submit" class="rounded-full bg-ember px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-ember-dark">
+      {% if package %}Save changes{% else %}Add package{% endif %}
+    </button>
+    <a href="{% url 'console:packages' %}" class="rounded-full px-6 py-2.5 text-sm font-semibold text-ink/50 hover:text-ember">Cancel</a>
+  </div>
+</form>
+{% endblock %}

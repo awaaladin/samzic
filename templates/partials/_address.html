@@ -1,0 +1,13 @@
+{% comment %}
+An address in parts, one line each. Works for a Profile or an Order (pass it as
+`obj`). Rows saved before the breakdown existed only have the one-line text, so
+that is shown instead. Usage: {% include "partials/_address.html" with obj=order %}
+{% endcomment %}
+{% if obj.address_line %}
+  <span class="block">{{ obj.address_line }}</span>
+  {% if obj.area %}<span class="block">{{ obj.area }}</span>{% endif %}
+  <span class="block">{{ obj.city }}{% if obj.city and obj.state %}, {% endif %}{{ obj.state }}</span>
+  {% if obj.landmark %}<span class="mt-1 block text-ink/45">Near {{ obj.landmark }}</span>{% endif %}
+{% else %}
+  <span class="block whitespace-pre-line">{{ obj.delivery_address }}</span>
+{% endif %}

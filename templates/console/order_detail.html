@@ -14,7 +14,7 @@
           <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/40">Delivery details</p>
           <p class="mt-2 text-lg font-bold text-ink">{{ order.full_name }}</p>
           <p class="mt-1 text-sm text-ink/60">{{ order.phone_number }}{% if order.email %} · {{ order.email }}{% endif %}</p>
-          <p class="mt-1 max-w-md text-sm text-ink/60">{{ order.delivery_address }}</p>
+          <p class="mt-2 max-w-md text-sm text-ink/60">{% include "partials/_address.html" with obj=order %}</p>
           {% if order.note %}
             <p class="mt-3 rounded-xl bg-bone px-3.5 py-2.5 text-sm text-ink/70"><strong class="font-semibold text-ink">Note:</strong> {{ order.note }}</p>
           {% endif %}
@@ -48,6 +48,37 @@
         </tfoot>
       </table>
     </div>
+
+    <section id="kitchen" class="rounded-2xl border border-ink/10 bg-white p-6">
+      <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/40">Messages with the customer</p>
+
+      {% if thread %}
+        <ol class="mt-4 space-y-2.5">
+          {% for m in thread %}
+            <li class="flex {% if m.sender == 'kitchen' %}justify-end{% endif %}">
+              <div class="max-w-[85%] rounded-2xl px-3.5 py-2 text-sm {% if m.sender == 'kitchen' %}rounded-br-md bg-ink text-bone{% else %}rounded-bl-md border border-ink/10 bg-bone text-ink{% endif %}">
+                <p class="whitespace-pre-line">{{ m.body }}</p>
+                <p class="mt-1 text-[10px] {% if m.sender == 'kitchen' %}text-bone/50{% else %}text-ink/40{% endif %}">
+                  {% if m.sender == 'kitchen' %}{{ m.author.get_username|default:"Kitchen" }}{% else %}{{ order.full_name }}{% endif %}
+                  &middot; {{ m.created_at|date:"j M, H:i" }}
+                </p>
+              </div>
+            </li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <p class="mt-3 text-sm text-ink/45">No messages yet. The customer can write to the kitchen from their order page.</p>
+      {% endif %}
+
+      <form method="post" action="{% url 'console:order_reply' order.reference %}" class="mt-5">
+        {% csrf_token %}
+        {% include "partials/_field.html" with field=reply_form.body %}
+        <button type="submit" class="mt-3 rounded-full bg-ink px-5 py-2 text-sm font-semibold text-bone transition hover:bg-ember">
+          Reply to customer
+        </button>
+      </form>
+    </section>
+
   </div>
 
   <div class="space-y-6">

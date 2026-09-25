@@ -30,6 +30,11 @@ def _wants_json(request):
     return request.headers.get("x-requested-with") == "XMLHttpRequest"
 
 
+def cart_count(request):
+    """Current plate count, for pages restored from the back/forward cache."""
+    return JsonResponse({"count": len(get_cart(request))})
+
+
 def _redirect_back(request, default="cart:detail"):
     """Send the customer back where they came from after adding an item."""
     next_url = request.POST.get("next")

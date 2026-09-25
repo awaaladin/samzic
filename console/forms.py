@@ -7,7 +7,7 @@ from django import forms
 from accounts.forms import TailwindFormMixin
 from menu.models import Category, FoodItem
 from orders.models import Order
-from pages.models import CateringRequest, ContactMessage
+from pages.models import CateringPackage, CateringRequest, ContactMessage
 
 
 class CategoryForm(TailwindFormMixin, forms.ModelForm):
@@ -47,3 +47,13 @@ class ContactHandledForm(TailwindFormMixin, forms.ModelForm):
     class Meta:
         model = ContactMessage
         fields = ["is_handled"]
+
+
+class CateringPackageForm(TailwindFormMixin, forms.ModelForm):
+    """The price cards on the public catering page."""
+
+    class Meta:
+        model = CateringPackage
+        fields = ["name", "description", "price_per_plate", "minimum_guests", "display_order", "is_active"]
+        widgets = {"description": forms.Textarea(attrs={"rows": 3})}
+        labels = {"price_per_plate": "Price per plate (\u20a6)"}

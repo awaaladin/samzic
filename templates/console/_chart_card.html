@@ -1,0 +1,82 @@
+{% comment %}
+The chart for an insight page. `d.chart` is the dataset (see console/analytics.py)
+and `d.filters.chart` picks the style: bar, line, smooth (curved, filled), doughnut,
+or numbers (no chart at all — the tables below carry the figures).
+
+Chart.js is loaded from a CDN only when a chart is actually drawn.
+{% endcomment %}
+<div class="rounded-2xl border border-ink/10 bg-white p-5">
+  <div class="flex flex-wrap items-baseline justify-between gap-2">
+    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/40">{{ chart_title }}</p>
+    <p class="text-xs text-ink/40">{{ d.start|date:"j M Y" }} &ndash; {{ d.end|date:"j M Y" }}</p>
+  </div>
+
+  {% if d.period_note %}<p class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{{ d.period_note }}</p>{% endif %}
+
+  {% if d.filters.chart == "numbers" %}
+    <p class="mt-4 rounded-xl bg-bone px-4 py-6 text-center text-sm text-ink/50">
+      Numbers-only view &mdash; the figures are in the tables below. Pick a chart style above to see the trend.
+    </p>
+  {% else %}
+    <div class="relative mt-4 h-72 sm:h-80"><canvas id="insight-chart" aria-label="{{ chart_title }}" role="img"></canvas></div>
+    {{ d.chart|json_script:"insight-chart-data" }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>
+      (function () {
+        const data = JSON.parse(document.getElementById('insight-chart-data').textContent);
+        const kind = '{{ d.filters.chart }}';
+        const naira = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 });
+        const plain = new Intl.NumberFormat('en-NG');
+        const fmt = v => data.money ? naira.format(v) : plain.format(v);
+        const palette = ['#C21807', '#141414', '#0F766E', '#D97706', '#7A0F04', '#8A8A8A'];
+        const dense = data.labels.length > 40;
+
+        let type, datasets;
+        if (kind === 'doughnut') {
+          type = 'doughnut';
+          datasets = data.datasets.map(ds => ({
+            data: ds.data,
+            backgroundColor: data.labels.map((_, i) => palette[i % palette.length]),
+            borderWidth: 0,
+          }));
+        } else {
+          type = kind === 'bar' ? 'bar' : 'line';
+          datasets = data.datasets.map(ds => ({
+            label: ds.label,
+            data: ds.data,
+            borderColor: ds.color,
+            backgroundColor: kind === 'bar' ? ds.color : ds.color + '22',
+            borderWidth: 2,
+            borderRadius: kind === 'bar' ? 6 : 0,
+            tension: kind === 'smooth' ? 0.4 : 0,
+            fill: kind === 'smooth',
+            pointRadius: dense ? 0 : 3,
+            pointHoverRadius: 5,
+          }));
+        }
+
+        new Chart(document.getElementById('insight-chart'), {
+          type,
+          data: { labels: data.labels, datasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { display: kind === 'doughnut' || data.datasets.length > 1, position: 'bottom' },
+              tooltip: {
+                callbacks: {
+                  label: c => ' ' + (c.dataset.label ? c.dataset.label + ': ' : '') + fmt(kind === 'doughnut' ? c.parsed : c.parsed.y),
+                },
+              },
+            },
+            scales: kind === 'doughnut' ? {} : {
+              y: { beginAtZero: true, ticks: { callback: v => data.money ? naira.format(v) : v } },
+              x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true } },
+            },
+          },
+        });
+      })();
+    </script>
+  {% endif %}
+</div>

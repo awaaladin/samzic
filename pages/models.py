@@ -5,6 +5,9 @@ toast and reset — nothing was stored. Persisting them means an enquiry can
 actually be answered, and the admin becomes the shared inbox for the kitchen.
 """
 
+from decimal import Decimal
+
+from django.core.validators import MinValueValidator
 from django.db import models
 
 
@@ -16,6 +19,40 @@ class TimeStampedModel(models.Model):
 
     class Meta:
         abstract = True
+
+
+class CateringPackage(TimeStampedModel):
+    """A catering price card shown on the catering page.
+
+    The prices used to be typed into the template, so changing one meant a code
+    change and a deploy. They live here now and are edited from the console (or
+    the Django admin) like any other content.
+    """
+
+    name = models.CharField(max_length=80)
+    description = models.CharField(max_length=220, blank=True)
+    price_per_plate = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+        help_text="Starting price per plate, in Naira.",
+    )
+    minimum_guests = models.PositiveIntegerField(
+        default=50,
+        help_text="Smallest event this price applies to.",
+    )
+    display_order = models.PositiveSmallIntegerField(
+        default=0, help_text="Lower numbers appear first."
+    )
+    is_active = models.BooleanField(
+        default=True, help_text="Untick to hide from the catering page."
+    )
+
+    class Meta:
+        ordering = ["display_order", "name"]
+
+    def __str__(self):
+        return f"{self.name} — ₦{self.price_per_plate:,.0f} / plate"
 
 
 class CateringRequest(TimeStampedModel):

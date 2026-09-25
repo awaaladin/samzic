@@ -93,6 +93,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "config.middleware.CacheControlMiddleware",
     # Last on purpose: it must wrap the view closely enough that MessageMiddleware
     # still runs afterwards, or flash messages read during the re-render would be
     # marked consumed without ever being written back.
@@ -129,6 +130,8 @@ TEMPLATES = [
                 "cart.context_processors.cart",
                 # Exposes SITE_NAME and friends.
                 "config.context_processors.site",
+                # Unread counts for the console sidebar (no-op outside /console/).
+                "console.context_processors.badges",
             ],
         },
     },
@@ -231,6 +234,11 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
+
+if "test" in sys.argv:
+    # PBKDF2 is slow on purpose; with a user created in most tests that makes the
+    # suite crawl. MD5 is used for `manage.py test` only — never for real accounts.
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "accounts:profile"

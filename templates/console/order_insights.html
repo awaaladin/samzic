@@ -1,0 +1,167 @@
+{% extends "console/base.html" %}
+{% load humanize %}
+{% block title %}Order insights{% endblock %}
+{% block page_title %}Order insights{% endblock %}
+
+{% block content %}
+{% with f=d.filters %}
+
+{# ---- filters ---------------------------------------------------------- #}
+<form method="get" id="insight-filters" class="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border border-ink/10 bg-white p-4">
+  <label class="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink/40">Range
+    <select name="range" id="f-range" class="mt-1.5 block rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink">
+      {% for value, label in range_choices %}<option value="{{ value }}" {% if f.range == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <div id="f-custom" class="{% if f.range != 'custom' %}hidden{% endif %} flex items-end gap-3">
+    <label class="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink/40">From
+      <input type="date" name="start" value="{{ d.start|date:'Y-m-d' }}" class="mt-1.5 block rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm font-normal text-ink">
+    </label>
+    <label class="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink/40">To
+      <input type="date" name="end" value="{{ d.end|date:'Y-m-d' }}" class="mt-1.5 block rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm font-normal text-ink">
+    </label>
+  </div>
+  <label class="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink/40">Group by
+    <select name="period" class="mt-1.5 block rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink">
+      {% for value, label in period_choices %}<option value="{{ value }}" {% if d.period == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink/40">Chart
+    <select name="chart" class="mt-1.5 block rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink">
+      {% for value, label in chart_choices %}<option value="{{ value }}" {% if f.chart == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink/40">Status
+    <select name="status" class="mt-1.5 block rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink">
+      <option value="">All</option>
+      {% for value, label in status_choices %}<option value="{{ value }}" {% if d.applied.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="text-[11px] font-semibold uppercase tracking-[0.1em] text-ink/40">Payment
+    <select name="payment_status" class="mt-1.5 block rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink">
+      <option value="">All</option>
+      {% for value, label in payment_status_choices %}<option value="{{ value }}" {% if d.applied.payment_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </label>
+  <button type="submit" class="rounded-xl bg-ink px-5 py-2 text-sm font-semibold text-bone transition hover:bg-ember">Apply</button>
+  <a href="{% url 'console:order_insights' %}" class="px-2 py-2 text-sm font-semibold text-ink/45 hover:text-ember">Reset</a>
+</form>
+
+{# ---- headline figures ------------------------------------------------- #}
+<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+  {% include "console/_kpi.html" with label="Orders" value=d.kpis.orders change=d.kpis.change note="no earlier orders to compare" accent=True %}
+  {% include "console/_kpi.html" with label="Order value" value=d.kpis.value money=True note="all statuses" %}
+  {% include "console/_kpi.html" with label="Average order" value=d.kpis.average money=True note="per order" %}
+  {% include "console/_kpi.html" with label="Items sold" value=d.kpis.items_sold note="plates across all orders" %}
+  {% include "console/_kpi.html" with label="Delivered" value=d.kpis.delivered note="completed" %}
+  {% include "console/_kpi.html" with label="Pending" value=d.kpis.pending note="awaiting the kitchen" %}
+  {% include "console/_kpi.html" with label="Cancelled" value=d.kpis.cancelled note="not fulfilled" %}
+  {% include "console/_kpi.html" with label="Unpaid" value=d.kpis.unpaid note="settle on delivery" %}
+</div>
+
+<div class="mt-6">
+  {% include "console/_chart_card.html" with chart_title="Orders over time" %}
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-3">
+
+  {# status mix #}
+  <div class="rounded-2xl border border-ink/10 bg-white p-5">
+    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/40">By status</p>
+    <ul class="mt-4 space-y-3">
+      {% for s in d.status_rows %}
+        <li>
+          <div class="flex items-center justify-between text-sm"><span class="text-ink/70">{{ s.label }}</span><span class="font-semibold text-ink">{{ s.count }}</span></div>
+          <div class="mt-1.5 h-1.5 rounded-full bg-ink/5"><div class="h-1.5 rounded-full bg-ember" style="width: {{ s.pct }}%"></div></div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {# top dishes #}
+  <div class="rounded-2xl border border-ink/10 bg-white p-5 lg:col-span-2">
+    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/40">Top dishes</p>
+    <table class="mt-3 w-full text-sm">
+      <thead><tr class="text-left text-[10.5px] uppercase tracking-[0.1em] text-ink/35"><th class="py-2 font-semibold">Dish</th><th class="py-2 text-right font-semibold">Plates</th><th class="py-2 text-right font-semibold">Sales</th></tr></thead>
+      <tbody>
+        {% for row in d.top_dishes %}
+          <tr class="border-t border-ink/5"><td class="py-2 text-ink">{{ row.name }}</td><td class="py-2 text-right text-ink/70">{{ row.qty }}</td><td class="py-2 text-right font-semibold text-ink">₦{{ row.revenue|floatformat:0|intcomma }}</td></tr>
+        {% empty %}
+          <tr><td colspan="3" class="py-6 text-center text-ink/40">No orders in this range.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# busiest times #}
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+  <div class="rounded-2xl border border-ink/10 bg-white p-5">
+    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/40">Busiest days of the week</p>
+    <ul class="mt-4 space-y-2">
+      {% for w in d.busiest.weekdays %}
+        <li class="flex items-center gap-3 text-sm"><span class="w-9 text-ink/50">{{ w.label }}</span>
+          <div class="h-2 flex-1 rounded-full bg-ink/5"><div class="h-2 rounded-full bg-ink" style="width: {{ w.pct }}%"></div></div>
+          <span class="w-8 text-right font-semibold text-ink">{{ w.count }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="rounded-2xl border border-ink/10 bg-white p-5">
+    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/40">Busiest hours</p>
+    <div class="mt-4 flex h-32 items-end gap-[3px]">
+      {% for h in d.busiest.hours %}
+        <div class="group relative flex-1" title="{{ h.label }} — {{ h.count }} order{{ h.count|pluralize }}">
+          <div class="w-full rounded-t bg-ember/80 transition group-hover:bg-ember" style="height: {{ h.pct }}%; min-height: 2px"></div>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="mt-2 flex justify-between text-[10px] text-ink/35"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div>
+  </div>
+</div>
+
+{# the numbers #}
+<div class="mt-6 overflow-hidden rounded-2xl border border-ink/10 bg-white">
+  <div class="border-b border-ink/10 px-5 py-3.5"><p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink/40">Breakdown by {{ d.period }}</p></div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-ink/10 text-left text-[10.5px] uppercase tracking-[0.1em] text-ink/40">
+          <th class="px-5 py-2.5 font-semibold">Period</th>
+          <th class="px-5 py-2.5 text-right font-semibold">Orders</th>
+          <th class="px-5 py-2.5 text-right font-semibold">Delivered</th>
+          <th class="px-5 py-2.5 text-right font-semibold">Cancelled</th>
+          <th class="px-5 py-2.5 text-right font-semibold">Value</th>
+          <th class="px-5 py-2.5 text-right font-semibold">Average</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in d.rows %}
+          <tr class="border-b border-ink/5 last:border-0 hover:bg-bone/60">
+            <td class="px-5 py-2.5 text-ink/70">{{ r.label }}</td>
+            <td class="px-5 py-2.5 text-right font-semibold text-ink">{{ r.orders }}</td>
+            <td class="px-5 py-2.5 text-right text-ink/60">{{ r.delivered }}</td>
+            <td class="px-5 py-2.5 text-right text-ink/60">{{ r.cancelled }}</td>
+            <td class="px-5 py-2.5 text-right text-ink">₦{{ r.value|floatformat:0|intcomma }}</td>
+            <td class="px-5 py-2.5 text-right text-ink/60">₦{{ r.average|floatformat:0|intcomma }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const form = document.getElementById('insight-filters');
+    const range = document.getElementById('f-range');
+    const custom = document.getElementById('f-custom');
+    // Picking a preset applies at once; "Custom dates" first reveals the date boxes.
+    form.querySelectorAll('select').forEach(sel => sel.addEventListener('change', () => {
+      if (sel === range && sel.value === 'custom') { custom.classList.remove('hidden'); return; }
+      if (sel === range) custom.classList.add('hidden');
+      form.submit();
+    }));
+  })();
+</script>
+{% endwith %}
+{% endblock %}

@@ -15,6 +15,8 @@
     <a href="{% url 'console:orders' %}" class="rounded-full bg-ember px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ember-dark">View orders</a>
     <a href="{% url 'console:food_item_add' %}" class="rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-bone transition hover:bg-white/15">Add food item</a>
     <a href="{% url 'console:food_items' %}" class="rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-bone transition hover:bg-white/15">Manage menu</a>
+    <a href="{% url 'console:revenue' %}" class="rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-bone transition hover:bg-white/15">Revenue</a>
+    <a href="{% url 'console:order_insights' %}" class="rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-bone transition hover:bg-white/15">Order insights</a>
   </div>
 </div>
 
@@ -50,6 +52,11 @@
     <p class="display mt-2 text-3xl font-extrabold text-ink">{{ stats.food_total }}</p>
     <p class="mt-1 text-xs text-ink/45">{{ stats.category_total }} categor{{ stats.category_total|pluralize:"y,ies" }}, {{ stats.food_sold_out }} sold out</p>
   </div>
+  <a href="{% url 'console:kitchen' %}" class="rounded-2xl border border-ink/10 bg-white p-5 transition hover:border-ember/40{% if stats.kitchen_unread %} ring-1 ring-ember/30{% endif %}">
+    <p class="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink/40">Kitchen messages</p>
+    <p class="display mt-2 text-3xl font-extrabold text-ink">{{ stats.kitchen_unread }}</p>
+    <p class="mt-1 text-xs text-ink/45">unread notes about orders</p>
+  </a>
   <div class="rounded-2xl border border-ink/10 bg-white p-5{% if stats.messages_new %} ring-1 ring-ember/30{% endif %}">
     <p class="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink/40">New messages</p>
     <p class="display mt-2 text-3xl font-extrabold text-ink">{{ stats.messages_new }}</p>

@@ -37,7 +37,15 @@
           {% include "partials/_field.html" with field=form.full_name %}
           {% include "partials/_field.html" with field=form.phone_number %}
           {% include "partials/_field.html" with field=form.email span=True %}
-          {% include "partials/_field.html" with field=form.delivery_address span=True %}
+        </div>
+
+        <h3 class="mt-7 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink/40">Delivery address</h3>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          {% include "partials/_field.html" with field=form.address_line span=True %}
+          {% include "partials/_field.html" with field=form.area %}
+          {% include "partials/_field.html" with field=form.city %}
+          {% include "partials/_field.html" with field=form.state %}
+          {% include "partials/_field.html" with field=form.landmark span=True %}
           {% include "partials/_field.html" with field=form.note span=True %}
         </div>
       </div>
@@ -57,9 +65,18 @@
         {% endcomment %}
         <div class="mt-5 grid gap-3 sm:grid-cols-2">
           {% for radio in form.payment_method %}
-            <label class="form-radio-label flex cursor-pointer items-center gap-3 rounded-xl border border-ink/15 bg-white px-4 py-3 text-sm transition hover:border-ink/30">
+            {# The input is visually hidden but stays the real control; the card after it reflects :checked. #}
+            <label class="relative block cursor-pointer">
               {{ radio.tag }}
-              <span>{{ radio.choice_label }}</span>
+              <span class="flex items-center gap-3 rounded-xl border border-ink/15 bg-white px-4 py-3.5 text-sm transition hover:border-ink/30
+                           peer-checked:border-ember peer-checked:bg-ember/5 peer-checked:ring-2 peer-checked:ring-ember/15
+                           peer-focus-visible:ring-2 peer-focus-visible:ring-ember/40
+                           peer-checked:[&_.dot]:border-ember peer-checked:[&_.dot]:bg-ember peer-checked:[&_.tick]:opacity-100">
+                <span class="dot grid h-5 w-5 shrink-0 place-items-center rounded-full border border-ink/25 bg-white transition">
+                  <svg class="tick h-3 w-3 text-white opacity-0 transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+                </span>
+                <span class="font-medium">{{ radio.choice_label }}</span>
+              </span>
             </label>
           {% endfor %}
         </div>

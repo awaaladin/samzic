@@ -4,7 +4,7 @@ from django import forms
 
 from accounts.forms import TailwindFormMixin
 
-from .models import Order
+from .models import Order, OrderMessage
 
 
 class CheckoutForm(TailwindFormMixin, forms.ModelForm):
@@ -16,12 +16,19 @@ class CheckoutForm(TailwindFormMixin, forms.ModelForm):
             "full_name",
             "email",
             "phone_number",
-            "delivery_address",
+            "address_line",
+            "area",
+            "city",
+            "state",
+            "landmark",
             "note",
             "payment_method",
         ]
         widgets = {
-            "delivery_address": forms.Textarea(attrs={"rows": 3}),
+            "address_line": forms.TextInput(attrs={"placeholder": "e.g. 12 Admiralty Way", "autocomplete": "address-line1"}),
+            "area": forms.TextInput(attrs={"placeholder": "e.g. Lekki Phase 1", "autocomplete": "address-line2"}),
+            "city": forms.TextInput(attrs={"placeholder": "e.g. Lagos", "autocomplete": "address-level2"}),
+            "landmark": forms.TextInput(attrs={"placeholder": "e.g. Opposite Shoprite, blue gate"}),
             "note": forms.Textarea(
                 attrs={"rows": 2, "placeholder": "e.g. Gate code, no pepper, call on arrival"}
             ),
@@ -32,7 +39,7 @@ class CheckoutForm(TailwindFormMixin, forms.ModelForm):
         labels = {
             "full_name": "Full name",
             "phone_number": "Phone number",
-            "delivery_address": "Delivery address",
+            "landmark": "Nearest landmark (optional)",
             "note": "Delivery note (optional)",
             "payment_method": "Payment method",
         }
@@ -41,22 +48,46 @@ class CheckoutForm(TailwindFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["note"].required = False
         self.fields["email"].required = False
-        # RadioSelect should not inherit the text-input styling.
-        self.fields["payment_method"].widget.attrs.pop("class", None)
+        self.fields["landmark"].required = False
+        self.fields["area"].required = False
+        for name in ("address_line", "city", "state"):
+            self.fields[name].required = True
+        self.fields["state"].choices = [("", "Select state")] + list(self.fields["state"].choices)[1:]
+        # RadioSelect should not inherit the text-input styling. The input is
+        # hidden and the card next to it (checkout.html) shows the selected state.
+        self.fields["payment_method"].widget.attrs["class"] = "peer sr-only"
+        # There is one payment method today. If the field ever arrives empty (a
+        # form restored by the browser, a stripped POST) fall back to it rather
+        # than blocking the order on a control the customer cannot see.
+        default = Order.PaymentMethod.PAY_ON_DELIVERY.value
+        self.fields["payment_method"].initial = default
+        if self.is_bound and not self.data.get("payment_method"):
+            self.data = self.data.copy()
+            self.data["payment_method"] = default
 
         if profile is not None and not self.is_bound:
             self.fields["full_name"].initial = profile.full_name or profile.display_name
             self.fields["phone_number"].initial = profile.phone_number
-            self.fields["delivery_address"].initial = profile.delivery_address
+            for name in ("address_line", "area", "city", "state", "landmark"):
+                self.fields[name].initial = getattr(profile, name)
             self.fields["email"].initial = profile.user.email
 
-    def clean_delivery_address(self):
-        address = self.cleaned_data["delivery_address"].strip()
-        if len(address) < 10:
+    def clean_address_line(self):
+        line = self.cleaned_data["address_line"].strip()
+        if len(line) < 5:
             raise forms.ValidationError(
-                "Please give a fuller address so the rider can find you."
+                "Please give a street address so the rider can find you."
             )
-        return address
+        return line
+
+    def save(self, commit=True):
+        # delivery_address is the parts joined into one line (Order.save builds it),
+        # so it never comes from the form.
+        order = super().save(commit=False)
+        order.delivery_address = order.compose_address()
+        if commit:
+            order.save()
+        return order
 
     def clean_phone_number(self):
         phone = self.cleaned_data["phone_number"].strip()
@@ -64,3 +95,25 @@ class CheckoutForm(TailwindFormMixin, forms.ModelForm):
         if not digits.isdigit() or len(digits) < 10:
             raise forms.ValidationError("Enter a reachable phone number.")
         return phone
+
+
+class OrderMessageForm(TailwindFormMixin, forms.Form):
+    """A note to (or from) the kitchen about one order."""
+
+    body = forms.CharField(
+        label="Message",
+        max_length=OrderMessage.MAX_LENGTH,
+        widget=forms.Textarea(
+            attrs={
+                "rows": 3,
+                "maxlength": OrderMessage.MAX_LENGTH,
+                "placeholder": "e.g. No pepper please · the gate code is 4471 · can you deliver after 6pm?",
+            }
+        ),
+    )
+
+    def clean_body(self):
+        body = self.cleaned_data["body"].strip()
+        if not body:
+            raise forms.ValidationError("Write a message first.")
+        return body

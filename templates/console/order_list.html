@@ -36,6 +36,11 @@
         <tr class="border-b border-ink/5 last:border-0 hover:bg-bone/60">
           <td class="px-5 py-3.5">
             <a href="{% url 'console:order_detail' order.reference %}" class="font-semibold text-ink hover:text-ember">{{ order.reference }}</a>
+            {% if order.unread %}
+              <a href="{% url 'console:order_detail' order.reference %}#kitchen" class="ml-2 rounded-full bg-ember px-2 py-0.5 text-[10px] font-bold text-white" title="Unread message from the customer">
+                {{ order.unread }} new
+              </a>
+            {% endif %}
           </td>
           <td class="px-5 py-3.5 text-ink/70">{{ order.full_name }}</td>
           <td class="px-5 py-3.5 font-semibold text-ink">₦{{ order.total_price|floatformat:0 }}</td>

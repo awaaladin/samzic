@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 
-from .models import CateringRequest, ContactMessage
+from .models import CateringPackage, CateringRequest, ContactMessage
 
 
 @admin.register(CateringRequest)
@@ -52,3 +52,10 @@ class ContactMessageAdmin(admin.ModelAdmin):
         self.message_user(request, f"{updated} message(s) marked as handled.")
 
     actions = ["mark_handled"]
+
+
+@admin.register(CateringPackage)
+class CateringPackageAdmin(admin.ModelAdmin):
+    list_display = ("name", "price_per_plate", "minimum_guests", "display_order", "is_active")
+    list_editable = ("price_per_plate", "display_order", "is_active")
+    ordering = ("display_order", "name")

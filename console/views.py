@@ -8,23 +8,28 @@ anything not covered here yet: users, groups, permissions, raw model editing,
 the builder app, full change history.
 """
 
+import csv
 from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Count, Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from menu.models import Category, FoodItem
-from orders.models import Order
-from pages.models import CateringRequest, ContactMessage
+from orders.forms import OrderMessageForm
+from orders.models import Order, OrderMessage
+from pages.models import CateringPackage, CateringRequest, ContactMessage
 
+from . import analytics
 from .forms import (
     CategoryForm,
+    CateringPackageForm,
     CateringStatusForm,
     ContactHandledForm,
     FoodItemForm,
@@ -70,7 +75,16 @@ def dashboard(request):
 
 @staff_required
 def order_list(request):
-    orders = Order.objects.select_related("user").order_by("-created_at")
+    orders = (
+        Order.objects.select_related("user")
+        .annotate(
+            unread=Count(
+                "messages",
+                filter=Q(messages__sender=OrderMessage.Sender.CUSTOMER, messages__is_read=False),
+            )
+        )
+        .order_by("-created_at")
+    )
 
     status = request.GET.get("status", "")
     if status:
@@ -107,8 +121,68 @@ def order_detail(request, reference):
             return redirect("console:order_detail", reference=order.reference)
     else:
         form = OrderStatusForm(instance=order)
+        # Opening the order is what "read" means for the kitchen.
+        order.messages.filter(sender=OrderMessage.Sender.CUSTOMER, is_read=False).update(is_read=True)
 
-    return render(request, "console/order_detail.html", {"order": order, "form": form})
+    context = {
+        "order": order,
+        "form": form,
+        "thread": order.messages.select_related("author"),
+        "reply_form": OrderMessageForm(),
+    }
+    return render(request, "console/order_detail.html", context)
+
+
+@require_POST
+@staff_required
+def order_reply(request, reference):
+    """The kitchen answers a customer's note about this order."""
+    order = get_object_or_404(Order, reference=reference)
+    form = OrderMessageForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, " ".join(form.errors.get("body", ["Write a reply first."])))
+    elif order.messages.count() >= OrderMessage.MAX_PER_ORDER:
+        messages.error(request, "This thread is full \u2014 call the customer instead.")
+    else:
+        OrderMessage.objects.create(
+            order=order,
+            sender=OrderMessage.Sender.KITCHEN,
+            author=request.user,
+            body=form.cleaned_data["body"],
+        )
+        messages.success(request, f"Reply sent to {order.full_name}.")
+    return redirect(f"{reverse('console:order_detail', args=[order.reference])}#kitchen")
+
+
+@staff_required
+def kitchen_inbox(request):
+    """Every order with a message thread, unread first \u2014 the kitchen's to-do list."""
+    threads = (
+        Order.objects.filter(messages__isnull=False)
+        .annotate(
+            total=Count("messages", distinct=True),
+            unread=Count(
+                "messages",
+                filter=Q(messages__sender=OrderMessage.Sender.CUSTOMER, messages__is_read=False),
+                distinct=True,
+            ),
+        )
+        .select_related("user")
+    )
+    show = request.GET.get("show", "all")
+    if show == "unread":
+        threads = threads.filter(unread__gt=0)
+    threads = list(threads)
+    latest = {
+        m.order_id: m
+        for m in OrderMessage.objects.filter(order__in=threads).order_by("created_at")
+    }
+    for t in threads:
+        t.latest = latest.get(t.pk)
+    # Unread first, then most recent activity.
+    threads.sort(key=lambda t: (t.unread == 0, -(t.latest.created_at.timestamp() if t.latest else 0)))
+
+    return render(request, "console/kitchen_inbox.html", {"threads": threads, "show": show})
 
 
 # --- Menu: categories -------------------------------------------------------
@@ -263,3 +337,92 @@ def message_detail(request, pk):
         "console/message_detail.html",
         {"message_obj": message_obj, "form": form},
     )
+
+
+# --- Marketing: catering packages ---------------------------------------------
+
+@staff_required
+def package_list(request):
+    packages = CateringPackage.objects.order_by("display_order", "name")
+    return render(request, "console/package_list.html", {"packages": packages})
+
+
+@staff_required
+def package_form_view(request, pk=None):
+    package = get_object_or_404(CateringPackage, pk=pk) if pk else None
+    if request.method == "POST":
+        form = CateringPackageForm(request.POST, instance=package)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Saved \u201c{form.instance.name}\u201d \u2014 the catering page is updated.")
+            return redirect("console:packages")
+    else:
+        form = CateringPackageForm(instance=package)
+    return render(request, "console/package_form.html", {"form": form, "package": package})
+
+
+@require_POST
+@staff_required
+def package_delete(request, pk):
+    package = get_object_or_404(CateringPackage, pk=pk)
+    name = package.name
+    package.delete()
+    messages.success(request, f"Deleted \u201c{name}\u201d.")
+    return redirect("console:packages")
+
+
+# --- Insights: orders and revenue ---------------------------------------------
+
+def _insight_context(request, data):
+    """Everything the two insight templates share: the data plus the option lists
+    for their filter bars."""
+    return {
+        "d": data,
+        "period_choices": analytics.PERIOD_CHOICES,
+        "range_choices": analytics.RANGE_CHOICES,
+        "chart_choices": analytics.CHART_CHOICES,
+        "query": request.GET.urlencode(),
+    }
+
+
+@staff_required
+def order_insights(request):
+    data = analytics.order_insights(request.GET)
+    context = _insight_context(request, data)
+    context.update({
+        "status_choices": Order.Status.choices,
+        "payment_status_choices": Order.PaymentStatus.choices,
+    })
+    return render(request, "console/order_insights.html", context)
+
+
+@staff_required
+def revenue(request):
+    data = analytics.revenue_insights(request.GET)
+
+    if request.GET.get("export") == "csv":
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = (
+            f'attachment; filename="samzic-revenue-{data["start"]}-to-{data["end"]}.csv"'
+        )
+        response.write("\ufeff")  # so Excel reads the file as UTF-8
+        writer = csv.writer(response)
+        writer.writerow([
+            "Date", "Reference", "Customer", "Phone", "Payment method", "Payment status",
+            "Order status", "Subtotal", "Delivery fee", "Total", "Payment reference",
+        ])
+        for o in data["ledger"].iterator():
+            writer.writerow([
+                o.money_date.strftime("%Y-%m-%d %H:%M"), o.reference, o.full_name, o.phone_number,
+                o.get_payment_method_display(), o.get_payment_status_display(),
+                o.get_status_display(), o.subtotal, o.delivery_fee, o.total_price, o.payment_reference,
+            ])
+        return response
+
+    context = _insight_context(request, data)
+    context.update({
+        "view_choices": analytics.REVENUE_VIEWS,
+        "method_choices": Order.PaymentMethod.choices,
+        "page_obj": _paginate(request, data["ledger"]),
+    })
+    return render(request, "console/revenue.html", context)

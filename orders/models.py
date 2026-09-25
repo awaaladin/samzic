@@ -17,6 +17,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
+from accounts.address import STATE_CHOICES, compose_address
+
 
 def generate_reference():
     """Short, human-readable, unguessable order reference (e.g. SFE-7K3QD9)."""
@@ -53,6 +55,13 @@ class Order(models.Model):
     full_name = models.CharField(max_length=140)
     email = models.EmailField(blank=True)
     phone_number = models.CharField(max_length=20)
+    # The address as entered, in parts (blank on orders placed before the
+    # breakdown existed), plus the one-line version built from them.
+    address_line = models.CharField("Street address", max_length=200, blank=True)
+    area = models.CharField("Area / neighbourhood", max_length=100, blank=True)
+    city = models.CharField("City / town", max_length=80, blank=True)
+    state = models.CharField(max_length=40, blank=True, choices=STATE_CHOICES)
+    landmark = models.CharField("Nearest landmark", max_length=150, blank=True)
     delivery_address = models.TextField()
     note = models.TextField(blank=True, help_text="Rider instructions from the customer.")
 
@@ -91,7 +100,13 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.reference} — {self.full_name}"
 
+    def compose_address(self):
+        return compose_address(self.address_line, self.area, self.city, self.state, self.landmark)
+
     def save(self, *args, **kwargs):
+        composed = self.compose_address()
+        if composed:
+            self.delivery_address = composed
         if not self.reference:
             reference = generate_reference()
             # Collisions are vanishingly unlikely but cheap to rule out.
@@ -172,3 +187,40 @@ class OrderItem(models.Model):
     @property
     def total_price(self):
         return self.price * self.quantity
+
+
+class OrderMessage(models.Model):
+    """A note between the customer and the kitchen about one specific order.
+
+    "No pepper", "gate code is 4471", "can you deliver after 6?" — things that do
+    not belong in the order's single delivery note and need an answer. Either side
+    can post; ``is_read`` records whether the *other* side has opened it, which is
+    what drives the kitchen's unread badges in the console.
+    """
+
+    MAX_LENGTH = 1000
+    # Stops a runaway thread turning one order into a chat room.
+    MAX_PER_ORDER = 60
+
+    class Sender(models.TextChoices):
+        CUSTOMER = "customer", "Customer"
+        KITCHEN = "kitchen", "Kitchen"
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="messages")
+    sender = models.CharField(max_length=10, choices=Sender.choices)
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="order_messages",
+    )
+    body = models.TextField(max_length=MAX_LENGTH)
+    is_read = models.BooleanField(default=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+
+    def __str__(self):
+        return f"{self.order.reference} · {self.get_sender_display()}: {self.body[:40]}"

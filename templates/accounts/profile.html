@@ -78,9 +78,20 @@
           </div>
         {% endif %}
 
-        {% for field in profile_form %}
-          {% include "partials/_field.html" with field=field %}
-        {% endfor %}
+      </div>
+
+      <div class="mt-5 grid gap-5 sm:grid-cols-2">
+        {% include "partials/_field.html" with field=profile_form.full_name %}
+        {% include "partials/_field.html" with field=profile_form.phone_number %}
+      </div>
+
+      <h3 class="mt-8 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink/40">Delivery address</h3>
+      <div class="mt-4 grid gap-5 sm:grid-cols-2">
+        {% include "partials/_field.html" with field=profile_form.address_line span=True %}
+        {% include "partials/_field.html" with field=profile_form.area %}
+        {% include "partials/_field.html" with field=profile_form.city %}
+        {% include "partials/_field.html" with field=profile_form.state %}
+        {% include "partials/_field.html" with field=profile_form.landmark span=True %}
       </div>
     </section>
 

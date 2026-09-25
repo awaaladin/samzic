@@ -1,0 +1,18 @@
+{% load humanize %}{% comment %}
+One figure card. Usage:
+{% include "console/_kpi.html" with label="Orders" value=d.kpis.orders change=d.kpis.change accent=True %}
+Pass money=True to format the value as Naira.
+`change` is a percentage (or None); positive is green, negative is red.
+{% endcomment %}
+<div class="rounded-2xl border p-5 {% if accent %}border-ember/25 bg-ember/5{% else %}border-ink/10 bg-white{% endif %}">
+  <p class="text-[10.5px] font-semibold uppercase tracking-[0.14em] {% if accent %}text-ember-dark/70{% else %}text-ink/40{% endif %}">{{ label }}</p>
+  <p class="display mt-2 text-2xl font-extrabold text-ink sm:text-3xl">{% if money %}₦{{ value|floatformat:0|intcomma }}{% else %}{{ value }}{% endif %}</p>
+  {% if change is not None and change != "" %}
+    <p class="mt-1 text-xs font-semibold {% if change >= 0 %}text-emerald-700{% else %}text-ember{% endif %}">
+      {% if change >= 0 %}&#9650;{% else %}&#9660;{% endif %} {{ change }}%
+      <span class="font-normal text-ink/40">vs previous period</span>
+    </p>
+  {% elif note %}
+    <p class="mt-1 text-xs text-ink/45">{{ note }}</p>
+  {% endif %}
+</div>

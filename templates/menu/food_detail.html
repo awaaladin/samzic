@@ -69,7 +69,7 @@
 {% if related_items %}
 <section class="mx-auto max-w-7xl px-5 pt-24 lg:px-8">
   <h2 class="display border-b border-ink/10 pb-4 text-2xl font-bold">Goes well with</h2>
-  <div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+  <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
     {% for related in related_items %}
       {% include "menu/_food_card.html" with item=related %}
     {% endfor %}

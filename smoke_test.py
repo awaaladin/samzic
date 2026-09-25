@@ -119,7 +119,11 @@ response = client.post(
         "email": "smoke@example.com",
         "full_name": "Smoke Tester",
         "phone_number": "08012345678",
-        "delivery_address": "12 Admiralty Way, Lekki Phase 1, Lagos",
+        "address_line": "12 Admiralty Way",
+        "area": "Lekki Phase 1",
+        "city": "Lagos",
+        "state": "Lagos",
+        "landmark": "",
     },
     follow=True,
 )
@@ -138,7 +142,7 @@ form = response.context["form"]
 check("form prefills name", form["full_name"].value() == "Smoke Tester",
       str(form["full_name"].value()))
 check("form prefills address",
-      str(form["delivery_address"].value()).startswith("12 Admiralty Way"))
+      str(form["address_line"].value()).startswith("12 Admiralty Way"))
 
 order_count_before = Order.objects.count()
 response = client.post(
@@ -147,7 +151,10 @@ response = client.post(
         "full_name": "Smoke Tester",
         "email": "smoke@example.com",
         "phone_number": "08012345678",
-        "delivery_address": "12 Admiralty Way, Lekki Phase 1, Lagos",
+        "address_line": "12 Admiralty Way",
+        "area": "Lekki Phase 1",
+        "city": "Lagos",
+        "state": "Lagos",
         "note": "Ring the bell twice",
         "payment_method": "pod",
     },

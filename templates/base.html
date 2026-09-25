@@ -2,6 +2,17 @@
 <html lang="en" class="scroll-smooth">
 <head>
 <meta charset="UTF-8" />
+<script>
+  document.documentElement.classList.add('pre-paint');
+  // Reveal the page. Called once styles have had a frame to apply; the timeout is
+  // a safety net so a script error can never leave the page invisible.
+  window.__paint = function () {
+    var d = document.documentElement;
+    if (d.classList.contains('pre-paint')) { d.classList.remove('pre-paint'); d.classList.add('painted'); }
+  };
+  setTimeout(window.__paint, 1500);
+</script>
+<noscript><style>html.pre-paint{opacity:1}</style></noscript>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
 <meta name="description" content="{% block meta_description %}{{ SITE_TAGLINE }}{% endblock %}" />
@@ -18,7 +29,7 @@
 <link rel="stylesheet" href="{% static 'css/app.css' %}" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@1,600;1,700&display=swap" rel="stylesheet" />
 <script>
 tailwind.config = {
   theme: {
@@ -38,6 +49,18 @@ tailwind.config = {
   html { -webkit-font-smoothing: antialiased; }
   body { background:#F4F2EF; color:#141414; font-family:Inter,sans-serif; }
   .display { font-family:'Bricolage Grotesque',sans-serif; letter-spacing:-0.02em; }
+  /* Customer greeting ("Welcome back") — an italic serif so it reads as a
+     personal note rather than another heading. */
+  .welcome-font { font-family:'Playfair Display',Georgia,serif; font-style:italic; font-weight:600; letter-spacing:-0.01em; }
+  /* Tailwind's CDN build generates its CSS in the browser, so on every page load
+     there is a moment where the markup is unstyled. Keep the page invisible for
+     that moment (see the script at the end of <body>) instead of showing it
+     jump. The no-js and safety-timeout paths both reveal it. */
+  html.pre-paint { opacity:0; }
+  html.painted { opacity:1; transition:opacity .18s ease; }
+  /* Above-the-fold cards must not fade in on every navigation — that reads as
+     the page reloading. Only content scrolled into view later animates. */
+  .reveal.in-now { opacity:1; transform:none; transition:none; }
   .lift { transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease, border-color .3s ease; }
   .lift:hover { transform: translateY(-4px); box-shadow: 0 18px 40px -24px rgba(20,20,20,.45); }
   .reveal { opacity:0; transform: translateY(18px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1); }
@@ -231,8 +254,29 @@ flash() below builds the same markup for messages raised client-side.
   }), { threshold: .12 });
 
   document.addEventListener('DOMContentLoaded', () => {
+    // Anything already on screen appears immediately; only content further down
+    // the page animates in as it is scrolled to.
+    document.querySelectorAll('.reveal').forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight && r.bottom > 0) el.classList.add('in', 'in-now');
+    });
     observeReveals(document);
     document.querySelectorAll('[data-alert]').forEach(armFlash);
+    // Two frames: one for Tailwind's CDN build to inject its CSS, one to lay out.
+    requestAnimationFrame(() => requestAnimationFrame(() => window.__paint && window.__paint()));
+  });
+
+  // Back/forward can restore a frozen copy of the page (bfcache) whose cart badge
+  // is out of date. Pull the real count instead of showing the stale one.
+  window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    fetch('{% url "cart:count" %}', { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(r => r.json())
+      .then(data => {
+        document.querySelectorAll('[data-cart-count]').forEach(el => { el.textContent = data.count; });
+        document.querySelectorAll('[data-cart-count-text]').forEach(el => { el.textContent = 'Cart (' + data.count + ')'; });
+      })
+      .catch(() => {});
   });
 
   /** Arm scroll-reveal on a subtree. Exposed so app.js can call it after

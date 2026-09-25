@@ -1,0 +1,47 @@
+{% extends "console/base.html" %}
+{% block title %}Kitchen messages{% endblock %}
+{% block page_title %}Kitchen messages{% endblock %}
+
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+  <p class="max-w-xl text-sm text-ink/55">
+    Notes customers have sent about a specific order &mdash; allergies, gate codes, timing. Unread threads come first.
+  </p>
+  <div class="flex gap-2 text-sm">
+    <a href="?show=all" class="rounded-full px-4 py-2 font-semibold {% if show != 'unread' %}bg-ink text-bone{% else %}border border-ink/15 text-ink/60 hover:border-ember hover:text-ember{% endif %}">All threads</a>
+    <a href="?show=unread" class="rounded-full px-4 py-2 font-semibold {% if show == 'unread' %}bg-ink text-bone{% else %}border border-ink/15 text-ink/60 hover:border-ember hover:text-ember{% endif %}">Unread only</a>
+  </div>
+</div>
+
+<div class="overflow-hidden rounded-2xl border border-ink/10 bg-white">
+  {% for t in threads %}
+    <a href="{% url 'console:order_detail' t.reference %}#kitchen"
+       class="flex items-start justify-between gap-4 border-b border-ink/5 px-5 py-4 last:border-0 hover:bg-bone/60">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="font-semibold text-ink">{{ t.reference }}</span>
+          <span class="text-sm text-ink/55">{{ t.full_name }}</span>
+          {% include "console/_status_pill.html" with status=t.status label=t.get_status_display %}
+          {% if t.unread %}
+            <span class="rounded-full bg-ember px-2 py-0.5 text-[10px] font-bold text-white">{{ t.unread }} new</span>
+          {% endif %}
+        </div>
+        {% if t.latest %}
+          <p class="mt-1.5 truncate text-sm text-ink/60">
+            <span class="text-ink/40">{% if t.latest.sender == 'kitchen' %}You:{% else %}Customer:{% endif %}</span>
+            {{ t.latest.body }}
+          </p>
+        {% endif %}
+      </div>
+      <div class="shrink-0 text-right text-xs text-ink/40">
+        {% if t.latest %}{{ t.latest.created_at|date:"j M, H:i" }}{% endif %}
+        <p class="mt-1">{{ t.total }} message{{ t.total|pluralize }}</p>
+      </div>
+    </a>
+  {% empty %}
+    <p class="px-5 py-14 text-center text-sm text-ink/40">
+      {% if show == 'unread' %}Nothing unread — the kitchen is all caught up.{% else %}No customer has written about an order yet.{% endif %}
+    </p>
+  {% endfor %}
+</div>
+{% endblock %}

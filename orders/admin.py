@@ -3,7 +3,7 @@
 from django.contrib import admin
 from django.utils import timezone
 
-from .models import Order, OrderItem
+from .models import Order, OrderItem, OrderMessage
 
 
 class OrderItemInline(admin.TabularInline):
@@ -18,6 +18,13 @@ class OrderItemInline(admin.TabularInline):
         if obj.pk is None:
             return "—"
         return f"₦{obj.total_price:,.2f}"
+
+
+class OrderMessageInline(admin.TabularInline):
+    model = OrderMessage
+    extra = 0
+    fields = ["sender", "author", "body", "is_read", "created_at"]
+    readonly_fields = ["created_at"]
 
 
 @admin.register(Order)
@@ -36,13 +43,13 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ["reference", "full_name", "phone_number", "email", "user__username"]
     date_hierarchy = "created_at"
     list_select_related = ["user"]
-    inlines = [OrderItemInline]
+    inlines = [OrderItemInline, OrderMessageInline]
     readonly_fields = ["reference", "user", "created_at", "updated_at", "paid_at"]
     fieldsets = [
         (None, {"fields": ["reference", "user", "status"]}),
         (
             "Delivery details",
-            {"fields": ["full_name", "email", "phone_number", "delivery_address", "note"]},
+            {"fields": ["full_name", "email", "phone_number", "address_line", "area", "city", "state", "landmark", "delivery_address", "note"]},
         ),
         (
             "Payment",

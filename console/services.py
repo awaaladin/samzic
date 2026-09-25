@@ -13,7 +13,7 @@ def dashboard_stats():
     mid-migration must not lock staff out of the only tool they have to fix it.
     """
     from menu.models import Category, FoodItem
-    from orders.models import Order
+    from orders.models import Order, OrderMessage
     from pages.models import CateringRequest, ContactMessage
 
     today = timezone.localdate()
@@ -42,6 +42,10 @@ def dashboard_stats():
         "food_sold_out": FoodItem.objects.filter(available=False).count(),
         "category_total": Category.objects.count(),
         "messages_new": ContactMessage.objects.filter(is_handled=False).count(),
+        # Customer notes about specific orders that nobody in the kitchen has opened.
+        "kitchen_unread": OrderMessage.objects.filter(
+            sender=OrderMessage.Sender.CUSTOMER, is_read=False
+        ).count(),
         "catering_new": CateringRequest.objects.filter(
             status=CateringRequest.Status.NEW
         ).count(),

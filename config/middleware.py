@@ -53,3 +53,49 @@ class BrandedErrorPagesMiddleware:
             return response
 
         return render(request, template, status=response.status_code)
+
+
+class CacheControlMiddleware:
+    """Give every dynamic response an explicit, correct caching policy.
+
+    Every page here carries per-visitor content — the cart badge in the header,
+    the signed-in name, flash messages — so none of it may sit in a shared cache
+    or be served stale after the visitor changes something:
+
+    * Signed-in / transactional areas (account, cart, checkout, orders, console,
+      admin) are ``no-store``: never written to disk or a proxy, and re-fetched on
+      back/forward instead of showing yesterday's cart.
+    * Everything else is ``private, no-cache``: the browser may keep a copy but
+      must revalidate before reusing it, so a menu or price edit shows up on the
+      next visit rather than whenever a heuristic expiry lapses.
+    * Responses that already chose a policy (a view using ``cache_control``) are
+      left alone.
+
+    Static files never reach this: WhiteNoise answers them earlier in the chain
+    with its own long-lived headers.
+    """
+
+    NO_STORE_PREFIXES = (
+        "/console/", "/admin/", "/accounts/", "/cart/", "/orders/", "/checkout",
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        from django.utils.cache import add_never_cache_headers, patch_cache_control
+
+        response = self.get_response(request)
+        if response.has_header("Cache-Control"):
+            return response
+
+        sensitive = request.path.startswith(self.NO_STORE_PREFIXES)
+        is_read = request.method in ("GET", "HEAD")
+        is_page = response.get("Content-Type", "").startswith("text/html")
+
+        if sensitive or not is_read or not is_page:
+            # Writes, redirects, JSON and anything signed-in: never store.
+            add_never_cache_headers(response)
+        else:
+            patch_cache_control(response, private=True, no_cache=True, must_revalidate=True)
+        return response

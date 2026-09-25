@@ -29,6 +29,11 @@
                   {% else %}bg-amber-500/15 text-amber-900{% endif %}">
                   {{ order.get_status_display|upper }}
                 </span>
+                {% if order.unread_replies %}
+                  <span class="rounded-full bg-ember px-2.5 py-1 text-[10px] font-semibold tracking-[0.1em] text-white">
+                    {{ order.unread_replies }} NEW REPL{{ order.unread_replies|pluralize:"Y,IES" }}
+                  </span>
+                {% endif %}
               </div>
               <p class="mt-1.5 text-xs text-ink/45">
                 {{ order.created_at|date:"j M Y, g:i A" }} &middot;

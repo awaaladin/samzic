@@ -146,15 +146,30 @@ class ProfileForm(TailwindFormMixin, forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ["full_name", "phone_number", "delivery_address"]
-        widgets = {
-            "delivery_address": forms.Textarea(attrs={"rows": 3}),
-        }
+        fields = [
+            "full_name", "phone_number",
+            "address_line", "area", "city", "state", "landmark",
+        ]
         labels = {
             "full_name": "Full name",
             "phone_number": "Phone number",
-            "delivery_address": "Delivery address",
         }
+        widgets = {
+            "address_line": forms.TextInput(attrs={"placeholder": "e.g. 12 Admiralty Way", "autocomplete": "address-line1"}),
+            "area": forms.TextInput(attrs={"placeholder": "e.g. Lekki Phase 1", "autocomplete": "address-line2"}),
+            "city": forms.TextInput(attrs={"placeholder": "e.g. Lagos", "autocomplete": "address-level2"}),
+            "landmark": forms.TextInput(attrs={"placeholder": "e.g. Opposite Shoprite, blue gate"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # The address is what gets a rider to the door, so these are required here
+        # even though the model allows blanks (a brand-new profile starts empty).
+        for name in ("address_line", "city", "state"):
+            self.fields[name].required = True
+        self.fields["state"].choices = [("", "Select state")] + list(self.fields["state"].choices)[1:]
+        if not self.instance.city and not self.is_bound:
+            self.fields["city"].initial = "Lagos"
 
     def clean_phone_number(self):
         phone = self.cleaned_data.get("phone_number", "").strip()

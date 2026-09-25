@@ -2,7 +2,10 @@
 The console's own navigation — a persistent dark sidebar, hand-built for this
 layout. Not django.contrib.admin's nav_sidebar.html; no shared markup with it.
 Active-state is decided from request.resolver_match.url_name, since every
-route here lives in the 'console' namespace.
+route here lives in the 'console' namespace. Each link lists the url names it
+owns (space separated) so "Order insights" never lights up "All orders".
+
+`console_badges` comes from console.context_processors.badges.
 {% endcomment %}
 {% with url_name=request.resolver_match.url_name %}
 <aside id="console-sidebar"
@@ -22,29 +25,50 @@ route here lives in the 'console' namespace.
     </a>
 
     <p class="csection">Orders</p>
-    <a href="{% url 'console:orders' %}" class="cnav{% if 'order' in url_name %} current{% endif %}">
+    <a href="{% url 'console:orders' %}" class="cnav{% if url_name in 'orders order_detail order_reply' %} current{% endif %}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>
       All orders
     </a>
+    <a href="{% url 'console:kitchen' %}" class="cnav{% if url_name == 'kitchen' %} current{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 9.5h7M8.5 12.5h4"/></svg>
+      Kitchen messages
+      {% if console_badges.kitchen %}<span class="ml-auto rounded-full bg-ember px-2 py-0.5 text-[10px] font-bold text-white">{{ console_badges.kitchen }}</span>{% endif %}
+    </a>
+
+    <p class="csection">Insights</p>
+    <a href="{% url 'console:order_insights' %}" class="cnav{% if url_name == 'order_insights' %} current{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      Order insights
+    </a>
+    <a href="{% url 'console:revenue' %}" class="cnav{% if url_name == 'revenue' %} current{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+      Revenue
+    </a>
 
     <p class="csection">Menu</p>
-    <a href="{% url 'console:categories' %}" class="cnav{% if 'categor' in url_name %} current{% endif %}">
+    <a href="{% url 'console:categories' %}" class="cnav{% if url_name in 'categories category_add category_edit category_delete' %} current{% endif %}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M3.5 9.5h17"/><path d="M9 9.5V20"/></svg>
       Categories
     </a>
-    <a href="{% url 'console:food_items' %}" class="cnav{% if 'food_item' in url_name %} current{% endif %}">
+    <a href="{% url 'console:food_items' %}" class="cnav{% if url_name in 'food_items food_item_add food_item_edit food_item_delete' %} current{% endif %}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a2 2 0 0 0 4 0V3"/><path d="M8 10v11"/><path d="M17 3c-1.6 0-3 1.6-3 4v3c0 1.1 1 2 2 2v9"/></svg>
       Food items
     </a>
 
     <p class="csection">Marketing</p>
-    <a href="{% url 'console:catering' %}" class="cnav{% if 'catering' in url_name %} current{% endif %}">
+    <a href="{% url 'console:catering' %}" class="cnav{% if url_name in 'catering catering_detail' %} current{% endif %}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v3a1 1 0 0 0 1 1h2l4 4V6l-4 4H4a1 1 0 0 0-1 1z"/><path d="M14 8a4 4 0 0 1 0 8"/><path d="M17 5a8 8 0 0 1 0 14"/></svg>
       Catering leads
+      {% if console_badges.catering %}<span class="ml-auto rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold text-bone">{{ console_badges.catering }}</span>{% endif %}
     </a>
-    <a href="{% url 'console:messages' %}" class="cnav{% if 'message' in url_name %} current{% endif %}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v13H9l-5 3z"/><path d="M8 9h8M8 12.5h5"/></svg>
-      Messages
+    <a href="{% url 'console:packages' %}" class="cnav{% if url_name in 'packages package_add package_edit package_delete' %} current{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12 12 20l-8-8V4h8z"/><circle cx="8" cy="8" r="1.2"/></svg>
+      Catering prices
+    </a>
+    <a href="{% url 'console:messages' %}" class="cnav{% if url_name in 'messages message_detail' %} current{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
+      Contact inbox
+      {% if console_badges.messages %}<span class="ml-auto rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold text-bone">{{ console_badges.messages }}</span>{% endif %}
     </a>
 
     <p class="csection">More</p>

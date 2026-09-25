@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from .forms import CateringRequestForm, ContactMessageForm
+from .models import CateringPackage
 
 
 def about(request):
@@ -28,7 +29,12 @@ def catering(request):
     else:
         form = CateringRequestForm(initial=_profile_initial(request))
 
-    return render(request, "pages/catering.html", {"form": form})
+    context = {
+        "form": form,
+        # Price cards are content, edited from the console — not typed into the template.
+        "packages": CateringPackage.objects.filter(is_active=True),
+    }
+    return render(request, "pages/catering.html", context)
 
 
 def contact(request):
