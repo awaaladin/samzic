@@ -36,14 +36,16 @@ PAGE_SIZE = 20
 
 
 def staff_required(view_func):
-    """Anonymous visitors go to the branded sign-in; signed-in non-staff get a
-    plain 403 rather than a redirect loop back to a login they've already used.
+    """Anonymous visitors go to the branded staff sign-in (admin:login, not the
+    customer accounts:login) with ?next= back to the page they wanted; signed-in
+    non-staff get a plain 403 rather than a redirect loop back to a login
+    they've already used.
     """
 
     @wraps(view_func)
     def wrapped(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return redirect_to_login(request.get_full_path(), login_url=reverse("accounts:login"))
+            return redirect_to_login(request.get_full_path(), login_url=reverse("admin:login"))
         if not request.user.is_staff:
             raise PermissionDenied("This page is for staff accounts only.")
         return view_func(request, *args, **kwargs)
