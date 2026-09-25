@@ -11,27 +11,13 @@
 {% comment %}
 A standalone document — it does not extend templates/base.html (the
 storefront chrome) or any admin/ template. Same brand tokens as the
-storefront (Tailwind CDN, ink/ember/bone, same fonts) for visual continuity,
+storefront (the compiled Tailwind stylesheet, ink/ember/bone, same fonts) for visual continuity,
 but its own layout, markup and navigation end to end.
 {% endcomment %}
-<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v={{ ASSET_VERSION }}" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      colors: {
-        ink: { DEFAULT: '#141414', soft: '#1D1D1D', line: '#2A2A2A', mute: '#8A8A8A' },
-        ember: { DEFAULT: '#C21807', dark: '#9C1205', light: '#E8402C' },
-        bone: '#F4F2EF'
-      },
-      fontFamily: { display: ['"Bricolage Grotesque"','sans-serif'], sans: ['Inter','sans-serif'] }
-    }
-  }
-}
-</script>
 <style>
   body { background: #F4F2EF; color: #141414; font-family: Inter, sans-serif; }
   .display { font-family: 'Bricolage Grotesque', sans-serif; letter-spacing: -0.02em; }

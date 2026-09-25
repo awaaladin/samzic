@@ -90,7 +90,10 @@ class MediaStorageConfigTests(TestCase):
             "cloudinary_storage.storage.MediaCloudinaryStorage",
         )
         # Static files stay with WhiteNoise; only media moves.
-        self.assertIn("staticfiles", settings.STORAGES["staticfiles"]["BACKEND"])
+        self.assertEqual(
+            settings.STORAGES["staticfiles"]["BACKEND"],
+            "whitenoise.storage.CompressedStaticFilesStorage",
+        )
         for app in ("cloudinary", "cloudinary_storage"):
             self.assertIn(app, settings.INSTALLED_APPS)
 

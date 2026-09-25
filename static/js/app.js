@@ -157,79 +157,84 @@
 
   // ---------------------------------------------------------------------
   // Menu filtering, search, sort and paging — same page, no reload.
+  //
+  // Everything is delegated from `document` and looks the menu up when the event
+  // fires, so it works no matter which page the visitor arrived on: with Turbo
+  // the menu page can be swapped in long after this script first ran.
   // ---------------------------------------------------------------------
-  const grid = document.getElementById('menu-grid');
 
-  if (grid) {
-    /** Fetch a menu URL and swap in just the parts that changed. */
-    async function loadMenu(url, push) {
-      const region = document.getElementById('menu-results');
-      region.classList.add('opacity-40');
-      region.setAttribute('aria-busy', 'true');
+  /** Fetch a menu URL and swap in just the parts that changed. */
+  async function loadMenu(url, push) {
+    const region = document.getElementById('menu-results');
+    if (!region) { window.location.href = url; return; }
+    region.classList.add('opacity-40');
+    region.setAttribute('aria-busy', 'true');
 
-      let html;
-      try {
-        const response = await fetch(url, { headers: AJAX_HEADERS, credentials: 'same-origin' });
-        html = await response.text();
-      } catch (err) {
-        window.location.href = url;  // let the browser navigate instead
-        return;
-      }
-
-      // Parse the response and lift out the pieces we replace. Cheaper to
-      // maintain than a second JSON serialiser for the same cards.
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      const swap = ['menu-grid', 'menu-count', 'menu-pagination', 'menu-filters', 'menu-heading'];
-      swap.forEach(id => {
-        const next = doc.getElementById(id);
-        const current = document.getElementById(id);
-        if (next && current) current.innerHTML = next.innerHTML;
-      });
-
-      const title = doc.querySelector('title');
-      if (title) document.title = title.textContent;
-
-      region.classList.remove('opacity-40');
-      region.removeAttribute('aria-busy');
-
-      // Re-run the reveal animation on the new cards.
-      if (window.observeReveals) window.observeReveals(region);
-
-      if (push) history.pushState({ menu: url }, '', url);
-      region.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    let html;
+    try {
+      const response = await fetch(url, { headers: AJAX_HEADERS, credentials: 'same-origin' });
+      html = await response.text();
+    } catch (err) {
+      window.location.href = url;  // let the browser navigate instead
+      return;
     }
 
-    // Category chips, sort options and page links are all plain links inside
-    // the filter bar or pagination — one handler covers the lot.
-    document.addEventListener('click', function (event) {
-      const link = event.target.closest('#menu-filters a, #menu-pagination a');
-      if (!link || link.target || event.metaKey || event.ctrlKey || event.shiftKey) return;
-      event.preventDefault();
-      loadMenu(link.href, true);
+    // Parse the response and lift out the pieces we replace. Cheaper to
+    // maintain than a second JSON serialiser for the same cards.
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const swap = ['menu-grid', 'menu-count', 'menu-pagination', 'menu-filters', 'menu-heading'];
+    swap.forEach(id => {
+      const next = doc.getElementById(id);
+      const current = document.getElementById(id);
+      if (next && current) current.innerHTML = next.innerHTML;
     });
 
-    const searchForm = document.getElementById('menu-search');
-    if (searchForm) {
-      searchForm.addEventListener('submit', function (event) {
-        event.preventDefault();
-        const params = new URLSearchParams(new FormData(searchForm));
-        loadMenu(searchForm.action + '?' + params.toString(), true);
-      });
+    const title = doc.querySelector('title');
+    if (title) document.title = title.textContent;
 
-      // Sort is a select: submit its form rather than waiting for the Go button.
-      const sort = searchForm.querySelector('[name="sort"]');
-      if (sort) {
-        sort.addEventListener('change', () => {
-          searchForm.requestSubmit
-            ? searchForm.requestSubmit()
-            : searchForm.dispatchEvent(new Event('submit', { cancelable: true }));
-        });
-      }
-    }
+    region.classList.remove('opacity-40');
+    region.removeAttribute('aria-busy');
 
-    // Back/forward should move through filter states, not out of the page.
-    window.addEventListener('popstate', function (event) {
-      if (event.state && event.state.menu) loadMenu(event.state.menu, false);
-    });
+    // Re-run the reveal animation on the new cards.
+    if (window.observeReveals) window.observeReveals(region);
+
+    if (push) history.pushState({ menu: url }, '', url);
+    region.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
+
+  // Category chips, sort options and page links are all plain links inside
+  // the filter bar or pagination — one handler covers the lot.
+  document.addEventListener('click', function (event) {
+    if (!document.getElementById('menu-grid')) return;
+    const link = event.target.closest('#menu-filters a, #menu-pagination a');
+    if (!link || link.target || event.metaKey || event.ctrlKey || event.shiftKey) return;
+    event.preventDefault();
+    loadMenu(link.href, true);
+  });
+
+  document.addEventListener('submit', function (event) {
+    const form = event.target;
+    if (!form || form.id !== 'menu-search' || !document.getElementById('menu-grid')) return;
+    event.preventDefault();
+    const params = new URLSearchParams(new FormData(form));
+    loadMenu(form.action + '?' + params.toString(), true);
+  });
+
+  // Sort is a select: submit its form rather than waiting for the Go button.
+  document.addEventListener('change', function (event) {
+    const select = event.target;
+    if (!select || select.name !== 'sort') return;
+    const form = select.closest('#menu-search');
+    if (!form) return;
+    form.requestSubmit
+      ? form.requestSubmit()
+      : form.dispatchEvent(new Event('submit', { cancelable: true }));
+  });
+
+  // Back/forward should move through filter states, not out of the page.
+  window.addEventListener('popstate', function (event) {
+    if (event.state && event.state.menu && document.getElementById('menu-grid')) {
+      loadMenu(event.state.menu, false);
+    }
+  });
 })();

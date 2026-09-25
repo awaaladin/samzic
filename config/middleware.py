@@ -99,3 +99,32 @@ class CacheControlMiddleware:
         else:
             patch_cache_control(response, private=True, no_cache=True, must_revalidate=True)
         return response
+
+
+class TurboFormStatusMiddleware:
+    """Make invalid form re-renders work with Turbo Drive.
+
+    Turbo submits forms over fetch and only accepts two answers: a redirect
+    (success) or a 4xx/5xx page (failure, which it renders in place). Our views
+    re-render a form with its errors as a plain ``200``, which Turbo treats as a
+    protocol error and ignores — the visitor would see nothing happen.
+
+    Turbo announces itself with ``text/vnd.turbo-stream.html`` in ``Accept`` on form
+    submissions, so a ``200`` HTML answer to such a POST is a validation failure and
+    is re-labelled ``422``. Browsers (and app.js's own fetches) never send that
+    header, so ordinary form posts and JSON calls are untouched.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if (
+            request.method == "POST"
+            and response.status_code == 200
+            and "text/vnd.turbo-stream.html" in request.headers.get("Accept", "")
+            and response.get("Content-Type", "").startswith("text/html")
+        ):
+            response.status_code = 422
+        return response

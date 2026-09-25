@@ -195,3 +195,66 @@ class CachePolicyTests(ConsoleTestBase):
 
     def test_json_and_redirects_are_not_stored(self):
         self.assertIn("no-store", self.client.get(reverse("cart:count"))["Cache-Control"])
+
+
+class TurboNavigationTests(ConsoleTestBase):
+    TURBO_ACCEPT = "text/vnd.turbo-stream.html, text/html, application/xhtml+xml"
+
+    def test_storefront_loads_turbo_and_keeps_scripts_from_rerunning(self):
+        page = self.client.get(reverse("menu:menu")).content.decode()
+        self.assertIn("/static/vendor/turbo.js", page)  # self-hosted, no public CDN in the page
+        self.assertNotIn("cdn.jsdelivr.net", page)
+        self.assertIn('name="turbo-cache-control" content="no-cache"', page)
+        # The global helpers and app.js run once, on the first full load only.
+        self.assertIn('data-turbo-eval="false"', page)
+
+    def test_links_into_the_console_are_full_page_loads(self):
+        self.client.force_login(self.staff)
+        page = self.client.get(reverse("menu:menu")).content.decode()
+        self.assertIn('href="/console/" data-turbo="false"', page)
+
+    def test_invalid_form_answers_422_only_for_turbo_submissions(self):
+        bad = {"username": "nobody", "password": "wrong"}
+        # A plain browser post keeps the ordinary 200 re-render.
+        self.assertEqual(self.client.post(reverse("accounts:login"), bad).status_code, 200)
+        # Turbo needs a 4xx to render the errors in place instead of ignoring the reply.
+        response = self.client.post(reverse("accounts:login"), bad, HTTP_ACCEPT=self.TURBO_ACCEPT)
+        self.assertEqual(response.status_code, 422)
+        self.assertContains(response, "errorlist", status_code=422)
+
+    def test_successful_turbo_form_still_redirects(self):
+        response = self.client.post(
+            reverse("accounts:login"),
+            {"username": "cust", "password": "pw-12345-xyz"},
+            HTTP_ACCEPT=self.TURBO_ACCEPT,
+        )
+        self.assertEqual(response.status_code, 302)
+
+    def test_cart_json_calls_are_not_relabelled(self):
+        response = self.client.get(reverse("cart:count"), HTTP_ACCEPT=self.TURBO_ACCEPT)
+        self.assertEqual(response.status_code, 200)
+
+    def test_no_template_comment_or_tag_leaks_into_rendered_pages(self):
+        """A multi-line {# ... #} is not a Django comment: it prints as visible text and
+        pushes the rest of <head> into <body>. Guard every main page against it."""
+        self.client.force_login(self.staff)
+        for name in ("menu:home", "menu:menu", "pages:catering", "pages:about", "pages:contact",
+                     "accounts:login", "accounts:signup", "cart:detail", "accounts:dashboard"):
+            html = self.client.get(reverse(name), follow=True).content.decode()
+            self.assertNotIn("{#", html, name)
+            self.assertNotIn("{%", html, name)
+            # The stylesheet, Turbo and the compiled CSS must all sit inside <head>.
+            head = html.split("</head>")[0]
+            self.assertIn("css/tailwind.css", head, name)
+            self.assertIn("vendor/turbo.js", head, name)
+
+    def test_the_page_no_longer_depends_on_the_tailwind_cdn(self):
+        html = self.client.get(reverse("menu:menu")).content.decode()
+        self.assertNotIn("cdn.tailwindcss.com", html)
+        console_html = self._staff_get("console:dashboard")
+        self.assertNotIn("cdn.tailwindcss.com", console_html)
+        self.assertIn("css/tailwind.css", console_html)
+
+    def _staff_get(self, name):
+        self.client.force_login(self.staff)
+        return self.client.get(reverse(name)).content.decode()

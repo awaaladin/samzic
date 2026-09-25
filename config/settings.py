@@ -93,6 +93,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "config.middleware.TurboFormStatusMiddleware",
     "config.middleware.CacheControlMiddleware",
     # Last on purpose: it must wrap the view closely enough that MessageMiddleware
     # still runs afterwards, or flash messages read during the re-render would be
@@ -295,7 +296,10 @@ else:
 STORAGES = {
     "default": {"BACKEND": DEFAULT_FILE_STORAGE_BACKEND},
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        # Same layout as StaticFilesStorage (no hashed names, so nothing can 404 on a
+        # missing manifest entry), plus a pre-compressed .gz/.br beside each file at
+        # collectstatic time, which WhiteNoise serves to browsers that accept it.
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 

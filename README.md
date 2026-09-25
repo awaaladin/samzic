@@ -19,7 +19,7 @@ A modern Django restaurant ordering application for quick food delivery, menu br
 - **Django 5.1.7** / Python 3.13+
 - **Pillow** (image uploads)
 - **django-environ** (`.env` configuration)
-- **Tailwind CSS** (CDN in development)
+- **Tailwind CSS** (compiled: `npm run build:css`)
 - **SQLite** (dev) → PostgreSQL (production, one env var swap)
 
 ## Project Structure
@@ -34,7 +34,7 @@ restura/
 ├── config/         # Settings, root URLs, context processors, error views
 ├── templates/      # Base template, app templates, partials/_field.html
 ├── static/
-│   ├── css/app.css # Project styles (Tailwind via CDN; see Production note below)
+│   ├── css/app.css # Project styles (compiled Tailwind, see Styles and front-end assets)
 │   └── img/        # hero.jpg, chef.jpg for marketing pages
 ├── media/
 │   └── food_items/ # Nine product photos shipped with the project
@@ -242,29 +242,24 @@ Before deploying:
 - [ ] Update `SITE_PHONE` in `settings.py` to your real support number
 - [ ] If using Paystack, add live keys to `.env` and switch the gateway from test to live mode
 
-## Tailwind CSS in Production
+## Styles and front-end assets
 
-Right now `templates/base.html` loads Tailwind via CDN:
+Tailwind is **compiled once and committed** (`static/css/tailwind.css`), not generated in
+every visitor's browser. Nothing on the storefront or the console loads a CSS build
+tool from a CDN, so pages don't wait on a third party or flash unstyled while it runs.
 
-```html
-<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-```
-
-This is instant in development but not recommended for production (no caching, custom config lives in an inline `<script>`, and Tailwind's CDN build is larger than a compiled one).
-
-For production, either:
-
-1. **Keep the CDN** (simplest, zero build step), or
-2. **Compile Tailwind locally**:
-   - Install Node.js + Tailwind CLI: `npm install -D tailwindcss`
-   - Add a `tailwind.config.js` that scans your templates
-   - Build: `npx tailwindcss -o static/css/tailwind.css --minify`
-   - Replace the CDN `<script>` in `base.html` with `<link rel="stylesheet" href="{% static 'css/tailwind.css' %}">`
-   - Re-run the build command after template changes
-
-The custom Tailwind config (ink/ember/bone colors, `.display`/`.lift`/`.reveal` utilities, IntersectionObserver script) currently lives in an inline `<script>` at the bottom of `base.html`. If you compile Tailwind, move that config into `tailwind.config.js` and the observer script into a separate `.js` file.
-
-`static/css/app.css` exists but is currently unlinked (no `<link>` in `base.html`). It's reserved for non-Tailwind overrides if you need them.
+- After adding or changing any Tailwind utility class in a template, `static/js/*.js` or a
+  form widget in Python, rebuild: `npm install` (first time), then `npm run build:css`.
+  Commit the regenerated `static/css/tailwind.css`. (`npm run watch:css` rebuilds as you edit.)
+- Design tokens (ink / ember / bone colours, fonts) live in `tailwind.config.js`.
+- Page changes use **Turbo Drive**, vendored at `static/vendor/turbo.js` (no CDN). Links and
+  forms swap the page content instead of reloading the document. Links to a different
+  document (the console, the Django admin) carry `data-turbo="false"`.
+- Scripts that define globals (`base.html`'s helpers, `static/js/app.js`) are marked
+  `data-turbo-eval="false"` so Turbo doesn't run them again on every visit; per-page setup
+  goes in `initPage()` / a `turbo:load` handler, and page scripts must be re-runnable.
+- `?v=` on the site's own CSS/JS URLs is a content hash (`ASSET_VERSION`), so a deploy is
+  picked up immediately instead of after a cache expires.
 
 ## Testing
 
